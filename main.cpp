@@ -10,6 +10,7 @@
 #include <stdio.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include "Md2Model.h"
 #define QUANT_TEX 1
 #define BLOCOS 100 //quantidade de blocos da fase(por onde o personagem vai andar)
 
@@ -19,7 +20,6 @@ float R, G, B;
 bool esquerda = false, direita = false, cima = false, baixo = false; //botoes para mover o personagem
 float personX = 300, personY = 350; //coordenadas iniciais do personagem
 float personComp = 50, personAlt = 30; //comprimento e altura do personagem
-unsigned int id_texturas[QUANT_TEX]; //nomes identificadores de textura
 
 
 //A-personagem
@@ -61,6 +61,7 @@ void display(void);
 void criaBloco(void);
 void criaCubo(float x);
 void criaCenario(void);
+void DefineIluminacao(void);
 
 // Funcao Principal do C
 int main(int argc, char** argv)
@@ -73,7 +74,7 @@ int main(int argc, char** argv)
 
 	init(); // Chama a funcao init();
 	glEnable(GL_DEPTH_TEST);// Habilitando o teste de profundidade do Z-buffer
-
+	// Registra a função callback que será chamada a cada intervalo de tempo
 	glutReshapeFunc(reshape); //funcao callback para redesenhar a tela
 	glutDisplayFunc(display); //funcao callback de desenho
 	glutKeyboardFunc(keyboard); //funcao callback do teclado
@@ -89,19 +90,6 @@ void init(void)
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 
-	GLfloat mat_specular[] = {1.0, 1.0, 1.0, 1.0};
-	GLfloat mat_shininess[] = {25.0};
-	GLfloat light_position[] = { -1.0, 1.0, 1.0, 0.0};
-	/*glClearColor(1.0, 1.0, 1.0, 1.0); //Limpa a tela com a cor branca;*/
-	glClearColor(0, 0, 0, 1); //Limpa a tela com a cor preta;
-	/* Inicia a iluminação e as características gerais dos materiais */
-	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
-	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
-	glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
-	glEnable(GL_COLOR_MATERIAL);
 
 	/* Activa o modelo de sombreagem de "Gouraud". */
 	glShadeModel( GL_SMOOTH );
@@ -197,6 +185,11 @@ void keyboard_special(int key, int x, int y)
 
 }
 
+GLfloat angulo=0.0f;
+// Função callback de redesenho da janela de visualização
+
+
+
 
 // Funcao usada na funcao callback para desenhar na tela
 void display(void)
@@ -207,10 +200,13 @@ void display(void)
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Limpar a tela e o Z-buffer
 	glLoadIdentity();//Limpa o Buffer de Cores
-	gluLookAt(0.0f, .1f, 0.1f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f);//visao da camera
 	glRotatef( rotate_x, 1.0, 0.0, 0.0 );
-	glRotatef( rotate_y, 0.0, 1.0, 0.0 );
+    glRotatef( rotate_y, 0.0, 1.0, 0.0 );
+	gluLookAt(0.0f, .1f, 0.1f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f);//visao da camera
+	DefineIluminacao();
 	criaCenario();
+
+	
 	// glTranslatef( 0.1, 0.0, 0.0 );      // Não está incluído
 	//glClear(GL_DEPTH_BUFFER_BIT); // Limpar a tela e o Z-buffer
 	//glLoadIdentity();//Limpa o Buffer de Cores
@@ -298,70 +294,133 @@ void display(void)
 
 }
 
-void criaCubo(float x) //x tamanho do cubo
+
+void criaCubo(float x)
 {
-	//Lado multicolorido - FRENTE
-	glBegin(GL_POLYGON);
-	glColor3f( 1.0, 0.0, 0.0 );
-	glVertex3f(  x, -x, -x );      // P1 é vermelho
-	glColor3f( 0.0, 1.0, 0.0 );
-	glVertex3f(  x,  x, -x );      // P2 é verde
-	glColor3f( 0.0, 0.0, 1.0 );
-	glVertex3f( -x,  x, -x );      // P3 é azul
-	glColor3f( 1.0, 0.0, 1.0 );
-	glVertex3f( -x, -x, -x );      // P4 é roxo
-
+	// Desenhas as linhas das "bordas" do cubo
+	glColor3f(0.0f, 0.0f, 0.0f); 
+	glLineWidth(1.6f);
+	glBegin(GL_LINE_LOOP);	// frontal
+		glVertex3f(x, x, x);    
+		glVertex3f(-x, x, x);
+		glVertex3f(-x, -x, x);
+		glVertex3f(x, -x, x); 
 	glEnd();
-
-	// Lado preto - TRASEIRA
-	glBegin(GL_POLYGON);
-	glColor3f(   0.0,  0.0, 0.0 );
-	glVertex3f(  x, -x, x );
-	glVertex3f(  x,  x, x );
-	glVertex3f( -x,  x, x );
-	glVertex3f( -x, -x, x );
+	glBegin(GL_LINE_LOOP);	//  posterior
+		glVertex3f(x, x, -x);
+		glVertex3f(x, -x, -x);
+		glVertex3f(-x, -x, -x); 
+		glVertex3f(-x, x, -x);
 	glEnd();
-
-	// Lado roxo - DIREITA
-	glBegin(GL_POLYGON);
-	glColor3f(  1.0,  0.0,  1.0 );
-	glVertex3f( x, -x, -x );
-	glVertex3f( x,  x, -x );
-	glVertex3f( x,  x,  x );
-	glVertex3f( x, -x,  x );
+	glBegin(GL_LINES);	//  laterais
+		glVertex3f(-x, x, -x);
+		glVertex3f(-x, x, x); 
+		glVertex3f(-x, -x, -x);
+		glVertex3f(-x, -x, x);     
+		glVertex3f(x, x, -x);
+		glVertex3f(x, x, x); 
+		glVertex3f(x, -x, -x);
+		glVertex3f(x, -x, x);  
 	glEnd();
+ 
+	// Desenha as faces do cubo preenchidas
+	// Face frontal
+	glBegin(GL_QUADS);
+		glNormal3f(0.0, 0.0, 1.0);	// Normal da face
+		glColor3f(1.0f, 1.0f, 0.0f);
+		glVertex3f(x, x, x);
+		glColor3f(0.0f, 1.0f, 0.0f);
+		glVertex3f(-x, x, x);
+		glColor3f(0.0f, 0.0f, 0.0f);
+		glVertex3f(-x, -x, x);
+		glColor3f(1.0f, 0.0f, 0.0f);  
+		glVertex3f(x, -x, x);
+	// Face posterior
+		glNormal3f(0.0, 0.0, -1.0);
+		glColor3f(1.0f, 1.0f, 1.0f);
+		glVertex3f(x, x, -x);
 
-	// Lado verde - ESQUERDA
-	glBegin(GL_POLYGON);
-	glColor3f(   0.0,  1.0,  0.0 );
-	glVertex3f( -x, -x, x );
-	glVertex3f( -x,  x,  x );
-	glVertex3f( -x,  x, -x );
-	glVertex3f( -x, -x, -x );
+		glColor3f(1.0f, 0.0f, 1.0f);
+		glVertex3f(x, -x, -x);
+
+		glColor3f(0.0f, 0.0f, 1.0f);  
+		glVertex3f(-x, -x, -x);
+
+		glColor3f(0.0f, 1.0f, 1.0f);  
+		glVertex3f(-x, x, -x);
+
+	// Face lateral esquerda
+		glNormal3f(-1.0, 0.0, 0.0);
+		glColor3f(0.0f, 1.0f, 0.0f);  
+		glVertex3f(-x, x, x);
+					
+		glColor3f(0.0f, 1.0f, 1.0f);  
+		glVertex3f(-x, x, -x);
+
+		glColor3f(0.0f, 0.0f, 1.0f);  
+		glVertex3f(-x, -x, -x);
+
+		glColor3f(0.0f, 0.0f, 0.0f);  
+		glVertex3f(-x, -x, x);
+
+	// Face lateral direita
+		glNormal3f(1.0, 0.0, 0.0);
+		glColor3f(1.0f, 1.0f, 0.0f);  
+		glVertex3f(x, x, x);
+		glColor3f(1.0f, 0.0f, 0.0f);  
+		glVertex3f(x, -x, x);
+		glColor3f(1.0f, 0.0f, 1.0f);  
+		glVertex3f(x, -x, -x);
+		glColor3f(1.0f, 1.0f, 1.0f);  
+		glVertex3f(x, x, -x);
+	// Face superior
+		glNormal3f(0.0, 1.0, 0.0);
+		glColor3f(0.0f, 1.0f, 1.0f);  
+		glVertex3f(-x, x, -x);
+
+		glColor3f(0.0f, 1.0f, 0.0f);  
+		glVertex3f(-x, x, x);
+
+		glColor3f(1.0f, 1.0f, 0.0f);  
+		glVertex3f(x, x, x);
+		glColor3f(1.0f, 1.0f, 1.0f);  
+		glVertex3f(x, x, -x);
+
+	// Face inferior
+		glNormal3f(0.0, -1.0, 0.0);
+		glColor3f(0.0f, 0.0f, 1.0f);  
+		glVertex3f(-x, -x, -x);
+		glTexCoord2f(1, 0); //atribui coordenada de textura ao objeto
+		glColor3f(1.0f, 0.0f, 1.0f);  
+		glVertex3f(x, -x, -x);								
+		glTexCoord2f(1, 1);
+		glColor3f(1.0f, 0.0f, 0.0f);  
+		glVertex3f(x, -x, x);
+		glTexCoord2f(0, 1);
+		glColor3f(0.0f, 0.0f, 0.0f);  
+		glVertex3f(-x, -x, x);
+		glTexCoord2f(0, 0);
 	glEnd();
+}
+void DefineIluminacao (void)
+{
+	GLfloat luzAmbiente[4]={0.25,0.25,0.25,1.0}; 
+	GLfloat luzDifusa[4]={0.7,0.7,0.7,1.0};	   // "cor" 
+	GLfloat posicaoLuz0[4]={0.0, 80.0, 0.0, 1.0};
+	GLfloat posicaoLuz1[4]={0.0, -80.0, 0.0, 1.0}; 
 
-	// Lado azul - TOPO
-	glBegin(GL_POLYGON);
+	// Ativa o uso da luz ambiente 
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, luzAmbiente);
 
-	glColor3f(   0.0,  0.0,  1.0 );
-	glVertex3f(  x,  x,  x );
-	glVertex3f(  x,  x, -x );
-	glVertex3f( -x,  x, -x );
-	glVertex3f( -x,  x,  x );
-	glEnd();
+	// Define os parâmetros da luz de número 0
+	glLightfv(GL_LIGHT0, GL_AMBIENT, luzAmbiente); 
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, luzDifusa );
+	glLightfv(GL_LIGHT0, GL_POSITION, posicaoLuz0 );   
 
-	// Lado vermelho - BASE
-	glBegin(GL_POLYGON);
-	glColor3f(   1.0,  0.0,  0.0 );
-	glVertex3f(  x, -x, -x );
-	glTexCoord2f(0, 1); //atribui coordenada de textura ao objeto
-	glVertex3f(  x, -x,  x );
-	glTexCoord2f(1, 1);
-	glVertex3f( -x, -x, x );
-	glTexCoord2f(1, 0);
-	glVertex3f( -x, -x, -x );
-	glTexCoord2f(0, 0);
-	glEnd();
+	// Define os parâmetros da luz de número 1
+	glLightfv(GL_LIGHT1, GL_AMBIENT, luzAmbiente); 
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, luzDifusa );
+	glLightfv(GL_LIGHT1, GL_POSITION, posicaoLuz1 ); 
 }
 
 void criaCenario() //quantidade de blocos do cenario
@@ -389,7 +448,7 @@ void criaCenario() //quantidade de blocos do cenario
 			glPushMatrix();
 			glTranslatef( -0.2 + c, 0.0, 1 - 0.5 * k);
 			criaCubo(0.09);
-			c = c - 0.18;
+			c = c - 0.18;//distancia entre cada bloco
 			glPopMatrix();
 		}
 		c = 1;
