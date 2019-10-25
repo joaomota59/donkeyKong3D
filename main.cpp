@@ -1,5 +1,5 @@
 //*********************************************************************
-//  Computacao Gr·fica usando OpenGL
+//  Computacao Gr√°fica usando OpenGL
 //  Autor: C.DANIEL && J.LUCAS
 //*********************************************************************
 
@@ -10,7 +10,6 @@
 #include <stdio.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
-#include "Md2Model.h"
 #define QUANT_TEX 1
 #define BLOCOS 100 //quantidade de blocos da fase(por onde o personagem vai andar)
 
@@ -37,7 +36,7 @@ bool colisao(float aX, float aY, float aComp, float aAlt, float bX, float bY, fl
 	return true;
 }
 
-struct Bloco //Blocos do cen·rio
+struct Bloco //Blocos do cen√°rio
 {
 	float x;
 	float y;
@@ -74,7 +73,7 @@ int main(int argc, char** argv)
 
 	init(); // Chama a funcao init();
 	glEnable(GL_DEPTH_TEST);// Habilitando o teste de profundidade do Z-buffer
-	// Registra a funÁ„o callback que ser· chamada a cada intervalo de tempo
+	// Registra a fun√ß√£o callback que ser√° chamada a cada intervalo de tempo
 	glutReshapeFunc(reshape); //funcao callback para redesenhar a tela
 	glutDisplayFunc(display); //funcao callback de desenho
 	glutKeyboardFunc(keyboard); //funcao callback do teclado
@@ -94,7 +93,7 @@ void init(void)
 	/* Activa o modelo de sombreagem de "Gouraud". */
 	glShadeModel( GL_SMOOTH );
 
-	/* Activa o z-buffering, de modo a remover as superfÌcies escondidas */
+	/* Activa o z-buffering, de modo a remover as superf√≠cies escondidas */
 	glEnable(GL_DEPTH_TEST);
 
 }
@@ -186,7 +185,7 @@ void keyboard_special(int key, int x, int y)
 }
 
 GLfloat angulo=0.0f;
-// FunÁ„o callback de redesenho da janela de visualizaÁ„o
+// Fun√ß√£o callback de redesenho da janela de visualiza√ß√£o
 
 
 
@@ -207,7 +206,7 @@ void display(void)
 	criaCenario();
 
 	
-	// glTranslatef( 0.1, 0.0, 0.0 );      // N„o est· incluÌdo
+	// glTranslatef( 0.1, 0.0, 0.0 );      // N√£o est√° inclu√≠do
 	//glClear(GL_DEPTH_BUFFER_BIT); // Limpar a tela e o Z-buffer
 	//glLoadIdentity();//Limpa o Buffer de Cores
 
@@ -274,10 +273,10 @@ void display(void)
 
 		glBegin(GL_QUADS);//posicao do personagem
 		glColor3f(1, 0, 0);
-		glVertex2f(personX, personY); //VÈrtice superior esquerdo
-		glVertex2f(personX + personComp, personY); //VÈrtice superior direito
-		glVertex2f(personX + personComp, personY + personAlt); //VÈrtice inferior direito
-		glVertex2f(personX, personY + personAlt); //VÈrtice inferior esquerdo
+		glVertex2f(personX, personY); //V√©rtice superior esquerdo
+		glVertex2f(personX + personComp, personY); //V√©rtice superior direito
+		glVertex2f(personX + personComp, personY + personAlt); //V√©rtice inferior direito
+		glVertex2f(personX, personY + personAlt); //V√©rtice inferior esquerdo
 		glEnd();
 		criaBloco();
 
@@ -412,12 +411,12 @@ void DefineIluminacao (void)
 	// Ativa o uso da luz ambiente 
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, luzAmbiente);
 
-	// Define os par‚metros da luz de n˙mero 0
+	// Define os par√¢metros da luz de n√∫mero 0
 	glLightfv(GL_LIGHT0, GL_AMBIENT, luzAmbiente); 
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, luzDifusa );
 	glLightfv(GL_LIGHT0, GL_POSITION, posicaoLuz0 );   
 
-	// Define os par‚metros da luz de n˙mero 1
+	// Define os par√¢metros da luz de n√∫mero 1
 	glLightfv(GL_LIGHT1, GL_AMBIENT, luzAmbiente); 
 	glLightfv(GL_LIGHT1, GL_DIFFUSE, luzDifusa );
 	glLightfv(GL_LIGHT1, GL_POSITION, posicaoLuz1 ); 
@@ -482,17 +481,17 @@ void criaBloco()
 		glLineWidth(5);//espessura das linhas
 		glBegin(GL_LINES);
 		glColor3f(1, 0, 0);
-		glVertex2f(blocos[n].x, blocos[n].y); //VÈrtice inferior esquerdo
-		glVertex2f(blocos[n].x + blocos[n].comp, blocos[n].y); //VÈrtice inferior direito
-		glVertex2f(blocos[n].x + blocos[n].comp, blocos[n].y + blocos[n].alt); //VÈrtice superior direito
-		glVertex2f(blocos[n].x, blocos[n].y + blocos[n].alt); //VÈrtice superior esquerdo
+		glVertex2f(blocos[n].x, blocos[n].y); //V√©rtice inferior esquerdo
+		glVertex2f(blocos[n].x + blocos[n].comp, blocos[n].y); //V√©rtice inferior direito
+		glVertex2f(blocos[n].x + blocos[n].comp, blocos[n].y + blocos[n].alt); //V√©rtice superior direito
+		glVertex2f(blocos[n].x, blocos[n].y + blocos[n].alt); //V√©rtice superior esquerdo
 		glEnd();
 		glLineWidth(4);//espessura das linhas
 		glBegin(GL_LINES);//linhas cruzadas
-		glVertex2f(blocos[n].x, blocos[n].y); //VÈrtice inferior esquerdo
-		glVertex2f((int)((blocos[n].x + blocos[n].comp + blocos[n].x) / 2), (int)((blocos[n].y + blocos[n].alt + blocos[n].y + blocos[n].alt) / 2)); //VÈrtice superior (fica no meio)
-		glVertex2f((int)((blocos[n].x + blocos[n].comp + blocos[n].x) / 2), (int)((blocos[n].y + blocos[n].alt + blocos[n].y + blocos[n].alt) / 2)); //VÈrtice superior (fica no meio)
-		glVertex2f(blocos[n].x + blocos[n].comp, blocos[n].y); //VÈrtice inferior direito
+		glVertex2f(blocos[n].x, blocos[n].y); //V√©rtice inferior esquerdo
+		glVertex2f((int)((blocos[n].x + blocos[n].comp + blocos[n].x) / 2), (int)((blocos[n].y + blocos[n].alt + blocos[n].y + blocos[n].alt) / 2)); //V√©rtice superior (fica no meio)
+		glVertex2f((int)((blocos[n].x + blocos[n].comp + blocos[n].x) / 2), (int)((blocos[n].y + blocos[n].alt + blocos[n].y + blocos[n].alt) / 2)); //V√©rtice superior (fica no meio)
+		glVertex2f(blocos[n].x + blocos[n].comp, blocos[n].y); //V√©rtice inferior direito
 		glEnd();
 	}
 
