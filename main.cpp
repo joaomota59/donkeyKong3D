@@ -442,10 +442,15 @@ void criaCenario() //quantidade de blocos do cenario
 	glEnable(GL_TEXTURE_2D);
 	for (int k = 0; k < 4; k++) //numero de andares 'k'
 	{
-		for(int i = 0; i < 10; i++)//numero de blocos em cada andar 'i'
+		int BLOCKS = 11;
+		if(k == 0) BLOCKS = 12;
+		for(int i = 0; i < BLOCKS; i++)//numero de blocos em cada andar 'i'
 		{
 			glPushMatrix();
-			glTranslatef( -0.2 + c, 0.0, 1 - 0.5 * k);
+			if(k % 2 == 0)
+				glTranslatef( c, 0.0, 1 - 0.5 * k);
+			else 
+				glTranslatef( -0.2 + c, 0.0, 1 - 0.5 * k);
 			criaCubo(0.09);
 			c = c - 0.18;//distancia entre cada bloco
 			glPopMatrix();
