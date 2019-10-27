@@ -17,9 +17,10 @@
 //Variaveis Globais usadas para definicao de cores
 float R, G, B;
 bool esquerda = false, direita = false, cima = false, baixo = false; //botoes para mover o personagem
-float personX = 300, personY = 350; //coordenadas iniciais do personagem
+float personX, personY; //coordenadas iniciais do personagem
 float personComp = 50, personAlt = 30; //comprimento e altura do personagem
-
+// Posição da fonte de luz
+GLfloat posLuz[4] = { 0.0, -0.5, -0.5, 1.0 };
 
 //A-personagem
 //B-algo que vai colidir com o personagem
@@ -138,7 +139,7 @@ void keyboard(unsigned char key, int x, int y)
 
 //Funcao para controlar as teclas especiais (2 Byte) do teclado
 void keyboard_special(int key, int x, int y)
-{
+{     
 	switch(key)
 	{
 		//  Rotacao 5 graus esquerda
@@ -197,11 +198,22 @@ void display(void)
 	// muda para o modo GL_MODELVIEW (nao pretendemos alterar a projecao
 	// quando estivermos desenhando na tela)
 	//glMatrixMode(GL_MODELVIEW);
-
+						// Especifica sistema de coordenadas de projeção
+	glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();//Limpa o Buffer de Cores;
+	// Habilita a definição da cor do material a partir da cor corrente
+	glEnable(GL_COLOR_MATERIAL);
+	//Habilita o uso de iluminação
+	glEnable(GL_LIGHTING);  
+	// Habilita a luz de número 0
+	glEnable(GL_LIGHT0);
+	// Habilita o depth-buffering
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Limpar a tela e o Z-buffer
-	glLoadIdentity();//Limpa o Buffer de Cores
+
 	glRotatef( rotate_x, 1.0, 0.0, 0.0 );
     glRotatef( rotate_y, 0.0, 1.0, 0.0 );
+    
+ 
 	gluLookAt(0.0f, .1f, 0.1f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f);//visao da camera
 	DefineIluminacao();
 	criaCenario();
@@ -379,7 +391,7 @@ void criaCubo(float x)
 		glVertex3f(x, x, x);
 		glColor3f(1.0f, 1.0f, 1.0f);  
 		glVertex3f(x, x, -x);
-
+     
 	// Face inferior
 		glNormal3f(0.0, -1.0, 0.0);
 		glColor3f(0.0f, 0.0f, 1.0f);  
@@ -393,15 +405,24 @@ void criaCubo(float x)
 		glTexCoord2f(0, 1);
 		glColor3f(0.0f, 0.0f, 0.0f);  
 		glVertex3f(-x, -x, x);
-		glTexCoord2f(0, 0);
+		glTexCoord2f(0, 0); 
 	glEnd();
 }
+
 void DefineIluminacao (void)
 {
-	GLfloat luzAmbiente[4]={0.25,0.25,0.25,1.0}; 
+	GLfloat luzAmbiente[4]={0.2,0.2,0.2,1.0}; 
 	GLfloat luzDifusa[4]={0.7,0.7,0.7,1.0};	   // "cor" 
-	GLfloat posicaoLuz0[4]={0.0, 80.0, 0.0, 1.0};
-	GLfloat posicaoLuz1[4]={0.0, -80.0, 0.0, 1.0}; 
+	GLfloat luzEspecular[4]={1.0, 1.0, 1.0, 1.0};// "brilho" 
+
+	// Capacidade de brilho do material
+	GLfloat especularidade[4]={1.0,1.0,1.0,1.0}; 
+	GLint especMaterial = 60;
+
+	// Define a refletância do material 
+	glMaterialfv(GL_FRONT,GL_SPECULAR, especularidade);
+	// Define a concentração do brilho
+	glMateriali(GL_FRONT,GL_SHININESS,especMaterial);
 
 	// Ativa o uso da luz ambiente 
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, luzAmbiente);
@@ -409,13 +430,10 @@ void DefineIluminacao (void)
 	// Define os parâmetros da luz de número 0
 	glLightfv(GL_LIGHT0, GL_AMBIENT, luzAmbiente); 
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, luzDifusa );
-	glLightfv(GL_LIGHT0, GL_POSITION, posicaoLuz0 );   
+	glLightfv(GL_LIGHT0, GL_SPECULAR, luzEspecular );
+	glLightfv(GL_LIGHT0, GL_POSITION, posLuz );   
+} 
 
-	// Define os parâmetros da luz de número 1
-	glLightfv(GL_LIGHT1, GL_AMBIENT, luzAmbiente); 
-	glLightfv(GL_LIGHT1, GL_DIFFUSE, luzDifusa );
-	glLightfv(GL_LIGHT1, GL_POSITION, posicaoLuz1 ); 
-}
 
 void criaCenario() //quantidade de blocos do cenario
 {
@@ -452,21 +470,18 @@ void criaCenario() //quantidade de blocos do cenario
 		}
 		c = 1;
 	}
-	glDisable(GL_TEXTURE_2D);
-	int ks,kw,ky;
-	unsigned int t2;
-	unsigned char *uc2 = stbi_load("escada.png", &ks, &kw, &ky, 0);
-	glGenTextures(1, &t2); //gera nomes identificadores de texturas
-	glBindTexture(GL_TEXTURE_2D, t2); //Ativa a textura atual
-
-	//Cria a textura lateral de cada bloco
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, ks, kw,
+	glDisable(GL_TEXTURE_2D);  //desativa a textura dos blocos
+	unsigned char *uc2 = stbi_load("escada.png", &w, &h, &n, 0);
+	glGenTextures(1, &t); //gera nomes identificadores de texturas
+	glBindTexture(GL_TEXTURE_2D, t); //Ativa a textura atual
+	//Cria a textura de cada escada
+ 
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h,
 				 0, GL_RGB, GL_UNSIGNED_BYTE, uc2);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_TEXTURE_2D);//inicia a nova textura
 	
 		//fazendo as escadas de cada andar
 		glPushMatrix();
@@ -484,22 +499,36 @@ void criaCenario() //quantidade de blocos do cenario
 		glScalef(0.8,0.0,1.75);
 		criaEscada(0.09);
 		glPopMatrix();
+		
+   glDisable(GL_TEXTURE_2D);//desativa a textura da escada
+		
+		
+		glPushMatrix();
+		glColor3f(0.0f, 0.0f, 1.0f);
+		glTranslatef(-0.7, -0.09, 0.75);
+		glutSolidSphere(0.1, 30, 30);
+		glPopMatrix();
 
 }
 
 void criaEscada(float x){	
-	
+			  	
 	  glBegin(GL_QUADS);
-		glColor3f(0.0f, 1.0f, 0.0f);//cor verde do objeto 
-		glTexCoord2f(1, 0); //atribui coordenada de textura ao objeto
+		glNormal3f(0.0, -1.0, 0.0);
+		glColor3f(0.0f, 0.0f, 1.0f);  
 		glVertex3f(-x, -x, -x);
-		glTexCoord2f(0, 0);
-		glVertex3f(x, -x, -x);
-		glTexCoord2f(0, 1);			  
-		glVertex3f(x, -x, x);  
-		glTexCoord2f(1,1);
+		glTexCoord2f(1, 0); //atribui coordenada de textura ao objeto
+		glColor3f(1.0f, 0.0f, 1.0f);  
+		glVertex3f(x, -x, -x);								
+		glTexCoord2f(1, 1);
+		glColor3f(1.0f, 0.0f, 0.0f);  
+		glVertex3f(x, -x, x);
+		glTexCoord2f(0, 1);
+		glColor3f(0.0f, 0.0f, 0.0f);  
 		glVertex3f(-x, -x, x);
-	  glEnd();	  
+		glTexCoord2f(0, 0); 
+	  glEnd();
+	  	  
 }
 
 
