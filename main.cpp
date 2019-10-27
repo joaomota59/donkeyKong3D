@@ -17,7 +17,7 @@
 //Variaveis Globais usadas para definicao de cores
 float R, G, B;
 bool esquerda = false, direita = false, cima = false, baixo = false; //botoes para mover o personagem
-float personX, personY; //coordenadas iniciais do personagem
+float personX = 0.75, personY = -0.75; //coordenadas iniciais do personagem
 float personComp = 50, personAlt = 30; //comprimento e altura do personagem
 // Posição da fonte de luz
 GLfloat posLuz[4] = { 0.0, -0.5, -0.5, 1.0 };
@@ -165,10 +165,14 @@ void keyboard_special(int key, int x, int y)
 		break;
 	case GLUT_KEY_LEFT://seta esquerda
 		esquerda = true;
+		if(personX > -1)
+			personX -= 0.01;
 		glutPostRedisplay();
 		break;
 	case GLUT_KEY_RIGHT://seta direita
 		direita = true;
+		if(personX < 1)
+			personX += 0.01;
 		glutPostRedisplay();
 		break;
 	case GLUT_KEY_UP://seta cima
@@ -505,7 +509,7 @@ void criaCenario() //quantidade de blocos do cenario
 		
 		glPushMatrix();
 		glColor3f(0.0f, 0.0f, 1.0f);
-		glTranslatef(-0.7, -0.09, 0.75);
+		glTranslatef(personX, personY, 0.0);
 		glutSolidSphere(0.1, 30, 30);
 		glPopMatrix();
 
