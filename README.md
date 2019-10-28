@@ -1,2 +1,2 @@
 # donkeyKong3D
-EXTRAIA TUDO EM UMA PASTA E EXECUTE O main.c dentro do Projeto.fpj
+Extraia tudo em uma pasta e execute o main.cpp dentro do Projeto.fpj
