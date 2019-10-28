@@ -139,7 +139,7 @@ void keyboard(unsigned char key, int x, int y)
 
 //Funcao para controlar as teclas especiais (2 Byte) do teclado
 void keyboard_special(int key, int x, int y)
-{     
+{
 	switch(key)
 	{
 		//  Rotacao 5 graus esquerda
@@ -166,13 +166,13 @@ void keyboard_special(int key, int x, int y)
 	case GLUT_KEY_LEFT://seta esquerda
 		esquerda = true;
 		if(personX > -1)
-			personX -= 0.01;
+			personX -= 0.025;
 		glutPostRedisplay();
 		break;
 	case GLUT_KEY_RIGHT://seta direita
 		direita = true;
 		if(personX < 1)
-			personX += 0.01;
+			personX += 0.025;
 		glutPostRedisplay();
 		break;
 	case GLUT_KEY_UP://seta cima
@@ -190,7 +190,7 @@ void keyboard_special(int key, int x, int y)
 
 }
 
-GLfloat angulo=0.0f;
+GLfloat angulo = 0.0f;
 // Função callback de redesenho da janela de visualização
 
 
@@ -202,27 +202,27 @@ void display(void)
 	// muda para o modo GL_MODELVIEW (nao pretendemos alterar a projecao
 	// quando estivermos desenhando na tela)
 	//glMatrixMode(GL_MODELVIEW);
-						// Especifica sistema de coordenadas de projeção
+	// Especifica sistema de coordenadas de projeção
 	glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();//Limpa o Buffer de Cores;
+	glLoadIdentity();//Limpa o Buffer de Cores;
 	// Habilita a definição da cor do material a partir da cor corrente
 	glEnable(GL_COLOR_MATERIAL);
 	//Habilita o uso de iluminação
-	glEnable(GL_LIGHTING);  
+	glEnable(GL_LIGHTING);
 	// Habilita a luz de número 0
 	glEnable(GL_LIGHT0);
 	// Habilita o depth-buffering
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Limpar a tela e o Z-buffer
 
 	glRotatef( rotate_x, 1.0, 0.0, 0.0 );
-    glRotatef( rotate_y, 0.0, 1.0, 0.0 );
-    
- 
+	glRotatef( rotate_y, 0.0, 1.0, 0.0 );
+
+
 	gluLookAt(0.0f, .1f, 0.1f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f);//visao da camera
 	DefineIluminacao();
 	criaCenario();
 
-	
+
 	// glTranslatef( 0.1, 0.0, 0.0 );      // Não está incluído
 	//glClear(GL_DEPTH_BUFFER_BIT); // Limpar a tela e o Z-buffer
 	//glLoadIdentity();//Limpa o Buffer de Cores
@@ -308,135 +308,135 @@ void display(void)
 void criaCubo(float x)
 {
 	// Desenhas as linhas das "bordas" do cubo
-	glColor3f(0.0f, 0.0f, 0.0f); 
+	glColor3f(0.0f, 0.0f, 0.0f);
 	glLineWidth(1.6f);
 	glBegin(GL_LINE_LOOP);	// frontal
-		glVertex3f(x, x, x);    
-		glVertex3f(-x, x, x);
-		glVertex3f(-x, -x, x);
-		glVertex3f(x, -x, x); 
+	glVertex3f(x, x, x);
+	glVertex3f(-x, x, x);
+	glVertex3f(-x, -x, x);
+	glVertex3f(x, -x, x);
 	glEnd();
 	glBegin(GL_LINE_LOOP);	//  posterior
-		glVertex3f(x, x, -x);
-		glVertex3f(x, -x, -x);
-		glVertex3f(-x, -x, -x); 
-		glVertex3f(-x, x, -x);
+	glVertex3f(x, x, -x);
+	glVertex3f(x, -x, -x);
+	glVertex3f(-x, -x, -x);
+	glVertex3f(-x, x, -x);
 	glEnd();
 	glBegin(GL_LINES);	//  laterais
-		glVertex3f(-x, x, -x);
-		glVertex3f(-x, x, x); 
-		glVertex3f(-x, -x, -x);
-		glVertex3f(-x, -x, x);     
-		glVertex3f(x, x, -x);
-		glVertex3f(x, x, x); 
-		glVertex3f(x, -x, -x);
-		glVertex3f(x, -x, x);  
+	glVertex3f(-x, x, -x);
+	glVertex3f(-x, x, x);
+	glVertex3f(-x, -x, -x);
+	glVertex3f(-x, -x, x);
+	glVertex3f(x, x, -x);
+	glVertex3f(x, x, x);
+	glVertex3f(x, -x, -x);
+	glVertex3f(x, -x, x);
 	glEnd();
- 
+
 	// Desenha as faces do cubo preenchidas
 	// Face frontal
 	glBegin(GL_QUADS);
-		glNormal3f(0.0, 0.0, 1.0);	// Normal da face
-		glColor3f(1.0f, 1.0f, 0.0f);
-		glVertex3f(x, x, x);
-		glColor3f(0.0f, 1.0f, 0.0f);
-		glVertex3f(-x, x, x);
-		glColor3f(0.0f, 0.0f, 0.0f);
-		glVertex3f(-x, -x, x);
-		glColor3f(1.0f, 0.0f, 0.0f);  
-		glVertex3f(x, -x, x);
+	glNormal3f(0.0, 0.0, 1.0);	// Normal da face
+	glColor3f(1.0f, 1.0f, 0.0f);
+	glVertex3f(x, x, x);
+	glColor3f(0.0f, 1.0f, 0.0f);
+	glVertex3f(-x, x, x);
+	glColor3f(0.0f, 0.0f, 0.0f);
+	glVertex3f(-x, -x, x);
+	glColor3f(1.0f, 0.0f, 0.0f);
+	glVertex3f(x, -x, x);
 	// Face posterior
-		glNormal3f(0.0, 0.0, -1.0);
-		glColor3f(1.0f, 1.0f, 1.0f);
-		glVertex3f(x, x, -x);
+	glNormal3f(0.0, 0.0, -1.0);
+	glColor3f(1.0f, 1.0f, 1.0f);
+	glVertex3f(x, x, -x);
 
-		glColor3f(1.0f, 0.0f, 1.0f);
-		glVertex3f(x, -x, -x);
+	glColor3f(1.0f, 0.0f, 1.0f);
+	glVertex3f(x, -x, -x);
 
-		glColor3f(0.0f, 0.0f, 1.0f);  
-		glVertex3f(-x, -x, -x);
+	glColor3f(0.0f, 0.0f, 1.0f);
+	glVertex3f(-x, -x, -x);
 
-		glColor3f(0.0f, 1.0f, 1.0f);  
-		glVertex3f(-x, x, -x);
+	glColor3f(0.0f, 1.0f, 1.0f);
+	glVertex3f(-x, x, -x);
 
 	// Face lateral esquerda
-		glNormal3f(-1.0, 0.0, 0.0);
-		glColor3f(0.0f, 1.0f, 0.0f);  
-		glVertex3f(-x, x, x);
-					
-		glColor3f(0.0f, 1.0f, 1.0f);  
-		glVertex3f(-x, x, -x);
+	glNormal3f(-1.0, 0.0, 0.0);
+	glColor3f(0.0f, 1.0f, 0.0f);
+	glVertex3f(-x, x, x);
 
-		glColor3f(0.0f, 0.0f, 1.0f);  
-		glVertex3f(-x, -x, -x);
+	glColor3f(0.0f, 1.0f, 1.0f);
+	glVertex3f(-x, x, -x);
 
-		glColor3f(0.0f, 0.0f, 0.0f);  
-		glVertex3f(-x, -x, x);
+	glColor3f(0.0f, 0.0f, 1.0f);
+	glVertex3f(-x, -x, -x);
+
+	glColor3f(0.0f, 0.0f, 0.0f);
+	glVertex3f(-x, -x, x);
 
 	// Face lateral direita
-		glNormal3f(1.0, 0.0, 0.0);
-		glColor3f(1.0f, 1.0f, 0.0f);  
-		glVertex3f(x, x, x);
-		glColor3f(1.0f, 0.0f, 0.0f);  
-		glVertex3f(x, -x, x);
-		glColor3f(1.0f, 0.0f, 1.0f);  
-		glVertex3f(x, -x, -x);
-		glColor3f(1.0f, 1.0f, 1.0f);  
-		glVertex3f(x, x, -x);
+	glNormal3f(1.0, 0.0, 0.0);
+	glColor3f(1.0f, 1.0f, 0.0f);
+	glVertex3f(x, x, x);
+	glColor3f(1.0f, 0.0f, 0.0f);
+	glVertex3f(x, -x, x);
+	glColor3f(1.0f, 0.0f, 1.0f);
+	glVertex3f(x, -x, -x);
+	glColor3f(1.0f, 1.0f, 1.0f);
+	glVertex3f(x, x, -x);
 	// Face superior
-		glNormal3f(0.0, 1.0, 0.0);
-		glColor3f(0.0f, 1.0f, 1.0f);  
-		glVertex3f(-x, x, -x);
+	glNormal3f(0.0, 1.0, 0.0);
+	glColor3f(0.0f, 1.0f, 1.0f);
+	glVertex3f(-x, x, -x);
 
-		glColor3f(0.0f, 1.0f, 0.0f);  
-		glVertex3f(-x, x, x);
+	glColor3f(0.0f, 1.0f, 0.0f);
+	glVertex3f(-x, x, x);
 
-		glColor3f(1.0f, 1.0f, 0.0f);  
-		glVertex3f(x, x, x);
-		glColor3f(1.0f, 1.0f, 1.0f);  
-		glVertex3f(x, x, -x);
-     
+	glColor3f(1.0f, 1.0f, 0.0f);
+	glVertex3f(x, x, x);
+	glColor3f(1.0f, 1.0f, 1.0f);
+	glVertex3f(x, x, -x);
+
 	// Face inferior
-		glNormal3f(0.0, -1.0, 0.0);
-		glColor3f(0.0f, 0.0f, 1.0f);  
-		glVertex3f(-x, -x, -x);
-		glTexCoord2f(1, 0); //atribui coordenada de textura ao objeto
-		glColor3f(1.0f, 0.0f, 1.0f);  
-		glVertex3f(x, -x, -x);								
-		glTexCoord2f(1, 1);
-		glColor3f(1.0f, 0.0f, 0.0f);  
-		glVertex3f(x, -x, x);
-		glTexCoord2f(0, 1);
-		glColor3f(0.0f, 0.0f, 0.0f);  
-		glVertex3f(-x, -x, x);
-		glTexCoord2f(0, 0); 
+	glNormal3f(0.0, -1.0, 0.0);
+	glColor3f(0.0f, 0.0f, 1.0f);
+	glVertex3f(-x, -x, -x);
+	glTexCoord2f(1, 0); //atribui coordenada de textura ao objeto
+	glColor3f(1.0f, 0.0f, 1.0f);
+	glVertex3f(x, -x, -x);
+	glTexCoord2f(1, 1);
+	glColor3f(1.0f, 0.0f, 0.0f);
+	glVertex3f(x, -x, x);
+	glTexCoord2f(0, 1);
+	glColor3f(0.0f, 0.0f, 0.0f);
+	glVertex3f(-x, -x, x);
+	glTexCoord2f(0, 0);
 	glEnd();
 }
 
 void DefineIluminacao (void)
 {
-	GLfloat luzAmbiente[4]={0.2,0.2,0.2,1.0}; 
-	GLfloat luzDifusa[4]={0.7,0.7,0.7,1.0};	   // "cor" 
-	GLfloat luzEspecular[4]={1.0, 1.0, 1.0, 1.0};// "brilho" 
+	GLfloat luzAmbiente[4] = {0.2, 0.2, 0.2, 1.0};
+	GLfloat luzDifusa[4] = {0.7, 0.7, 0.7, 1.0};	 // "cor"
+	GLfloat luzEspecular[4] = {1.0, 1.0, 1.0, 1.0}; // "brilho"
 
 	// Capacidade de brilho do material
-	GLfloat especularidade[4]={1.0,1.0,1.0,1.0}; 
+	GLfloat especularidade[4] = {1.0, 1.0, 1.0, 1.0};
 	GLint especMaterial = 60;
 
-	// Define a refletância do material 
-	glMaterialfv(GL_FRONT,GL_SPECULAR, especularidade);
+	// Define a refletância do material
+	glMaterialfv(GL_FRONT, GL_SPECULAR, especularidade);
 	// Define a concentração do brilho
-	glMateriali(GL_FRONT,GL_SHININESS,especMaterial);
+	glMateriali(GL_FRONT, GL_SHININESS, especMaterial);
 
-	// Ativa o uso da luz ambiente 
+	// Ativa o uso da luz ambiente
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, luzAmbiente);
 
 	// Define os parâmetros da luz de número 0
-	glLightfv(GL_LIGHT0, GL_AMBIENT, luzAmbiente); 
+	glLightfv(GL_LIGHT0, GL_AMBIENT, luzAmbiente);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, luzDifusa );
 	glLightfv(GL_LIGHT0, GL_SPECULAR, luzEspecular );
-	glLightfv(GL_LIGHT0, GL_POSITION, posLuz );   
-} 
+	glLightfv(GL_LIGHT0, GL_POSITION, posLuz );
+}
 
 
 void criaCenario() //quantidade de blocos do cenario
@@ -445,7 +445,7 @@ void criaCenario() //quantidade de blocos do cenario
 	unsigned int t;
 	glGenTextures(1, &t); //gera nomes identificadores de texturas
 	int n, w, h;
-	unsigned char *uc = stbi_load("donkey_kong_arcade.jpg", &w, &h, &n, 0);
+	unsigned char *uc = stbi_load("texturas/donkey_kong_arcade.jpg", &w, &h, &n, 0);
 
 	glBindTexture(GL_TEXTURE_2D, t); //Ativa a textura atual
 
@@ -456,6 +456,7 @@ void criaCenario() //quantidade de blocos do cenario
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+	
 	glEnable(GL_TEXTURE_2D);
 	for (int k = 0; k < 4; k++) //numero de andares 'k'
 	{
@@ -466,7 +467,7 @@ void criaCenario() //quantidade de blocos do cenario
 			glPushMatrix();
 			if(k % 2 == 0)
 				glTranslatef( c, 0.0, 1 - 0.5 * k);
-			else 
+			else
 				glTranslatef( -0.2 + c, 0.0, 1 - 0.5 * k);
 			criaCubo(0.09);
 			c = c - 0.18;//distancia entre cada bloco
@@ -475,64 +476,106 @@ void criaCenario() //quantidade de blocos do cenario
 		c = 1;
 	}
 	glDisable(GL_TEXTURE_2D);  //desativa a textura dos blocos
-	unsigned char *uc2 = stbi_load("escada.png", &w, &h, &n, 0);
+	unsigned char *uc2 = stbi_load("texturas/escada.png", &w, &h, &n, 0);
 	glGenTextures(1, &t); //gera nomes identificadores de texturas
 	glBindTexture(GL_TEXTURE_2D, t); //Ativa a textura atual
 	//Cria a textura de cada escada
- 
+
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h,
 				 0, GL_RGB, GL_UNSIGNED_BYTE, uc2);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-	glEnable(GL_TEXTURE_2D);//inicia a nova textura
 	
-		//fazendo as escadas de cada andar
-		glPushMatrix();
-		glTranslatef( -0.9, -0.09, 0.75);
-		glScalef(0.8,0.0,1.75);
-		criaEscada(0.09);
-		glPopMatrix();
-		glPushMatrix();
-		glTranslatef( 0.8 , -0.09, 0.25);
-		glScalef(0.8,0.0,1.75);
-		criaEscada(0.09);
-		glPopMatrix();
-		glPushMatrix();
-		glTranslatef( -0.80, -0.09, -0.25);
-		glScalef(0.8,0.0,1.75);
-		criaEscada(0.09);
-		glPopMatrix();
-		
-   glDisable(GL_TEXTURE_2D);//desativa a textura da escada
-		
-		
-		glPushMatrix();
-		glColor3f(0.0f, 0.0f, 1.0f);
-		glTranslatef(personX, personY, 0.0);
-		glutSolidSphere(0.1, 30, 30);
-		glPopMatrix();
+	glEnable(GL_TEXTURE_2D);//inicia a nova textura
+
+	//fazendo as escadas de cada andar
+	glPushMatrix();
+	glTranslatef( -0.9, -0.09, 0.75);
+	glScalef(0.8, 0.0, 1.75);
+	criaEscada(0.09);
+	glPopMatrix();
+	glPushMatrix();
+	glTranslatef( 0.8 , -0.09, 0.25);
+	glScalef(0.8, 0.0, 1.75);
+	criaEscada(0.09);
+	glPopMatrix();
+	glPushMatrix();
+	glTranslatef( -0.80, -0.09, -0.25);
+	glScalef(0.8, 0.0, 1.75);
+	criaEscada(0.09);
+	glPopMatrix();
+
+	glDisable(GL_TEXTURE_2D);//desativa a textura da escada
+
+
+	unsigned char *uc3 = stbi_load("texturas/barril.jpg", &w, &h, &n, 0);
+	glGenTextures(1, &t); //gera nomes identificadores de texturas
+	glBindTexture(GL_TEXTURE_2D, t); //Ativa a textura atual
+	//Cria a textura de cada barril
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h,
+				 0, GL_RGB, GL_UNSIGNED_BYTE, uc3);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	//glEnable(GL_COLOR_MATERIAL);
+	glEnable(GL_TEXTURE_2D);//inicia a textura do barril
+
+	
+	//barril 
+	GLUquadric *quad = gluNewQuadric(); //cria um quadrado
+    gluQuadricNormals(quad,GLU_FLAT);//FLAT significa uma normal para cada face do quadrado
+    gluQuadricOrientation(quad,GLU_INSIDE);//vetor da normal apontando p dentro
+    for(int barril=0,fator=0;barril<4;barril++,fator++){
+	glPushMatrix();
+	glColor3f(0.0f, 0.0f, 0.0f);//cor do objeto verde
+	glRotatef(90, 1.0f, 0.0f, 0.0f);//rotação para ficar de frente
+	gluQuadricTexture(quad, GLU_TRUE);//textura do quadrado é ativada
+	if(fator<2)
+		glTranslatef(0.75+(fator-fator*0.9), -0.64, 0.0);//posicao final do barril	
+	else
+		glTranslatef(0.75+((fator-2)-(fator-2)*0.9), -0.74, 0.0);//posicao final do barril
+
+	gluSphere(quad, 0.05, 30, 30);//gera a esfera baseado no objeto do quadrado
+    //gluCylinder(quad,0.1,0.1,0.4,30,30);//(quadrado,raio_1,raio2,altura,slices,stacks)
+	//glutCylinder nao tem as faces de cima e de baixo.. se usar ele da erro na figura do canto 
+	glPopMatrix();
+
+	}
+
+	glDisable(GL_TEXTURE_2D);//desativa a textura do barril
+	
+	
+		//personagem
+	glPushMatrix();
+	glColor3f(0.0f, 0.0f, 1.0f);
+	glTranslatef(personX, personY, 0.0);
+	glutSolidSphere(0.1, 30, 30);
+	glPopMatrix();
+	
+	
 
 }
 
-void criaEscada(float x){	
-			  	
-	  glBegin(GL_QUADS);
-		glNormal3f(0.0, -1.0, 0.0);
-		glColor3f(0.0f, 0.0f, 1.0f);  
-		glVertex3f(-x, -x, -x);
-		glTexCoord2f(1, 0); //atribui coordenada de textura ao objeto
-		glColor3f(1.0f, 0.0f, 1.0f);  
-		glVertex3f(x, -x, -x);								
-		glTexCoord2f(1, 1);
-		glColor3f(1.0f, 0.0f, 0.0f);  
-		glVertex3f(x, -x, x);
-		glTexCoord2f(0, 1);
-		glColor3f(0.0f, 0.0f, 0.0f);  
-		glVertex3f(-x, -x, x);
-		glTexCoord2f(0, 0); 
-	  glEnd();
-	  	  
+void criaEscada(float x)
+{
+
+	glBegin(GL_QUADS);
+	glNormal3f(0.0, -1.0, 0.0);
+	glColor3f(0.0f, 0.0f, 1.0f);
+	glVertex3f(-x, -x, -x);
+	glTexCoord2f(1, 0); //atribui coordenada de textura ao objeto
+	glColor3f(1.0f, 0.0f, 1.0f);
+	glVertex3f(x, -x, -x);
+	glTexCoord2f(1, 1);
+	glColor3f(1.0f, 0.0f, 0.0f);
+	glVertex3f(x, -x, x);
+	glTexCoord2f(0, 1);
+	glColor3f(0.0f, 0.0f, 0.0f);
+	glVertex3f(-x, -x, x);
+	glTexCoord2f(0, 0);
+	glEnd();
+
 }
 
 
