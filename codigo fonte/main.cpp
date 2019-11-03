@@ -45,8 +45,16 @@ struct Bloco //Blocos do cenário
 	bool colide;
 };
 
+typedef struct BlocoTeste
+{
+	float x;
+	float y;
+	float z;
+} tBloco;
+
 //Global
 Bloco blocos[BLOCOS];
+tBloco blocks[BLOCOS];
 double rotate_y = 0;
 double rotate_x = 0;
 
@@ -307,33 +315,61 @@ void display(void)
 }
 
 
-void criaCubo(float x)
+void criaCubo(float x, float* coord_x, float* coord_y, float* coord_z, float tx, float ty, float tz)
 {
+	int contador = 0;
 	// Desenhas as linhas das "bordas" do cubo
 	glColor3f(0.0f, 0.0f, 0.0f);
 	glLineWidth(1.6f);
 	glBegin(GL_LINE_LOOP);	// frontal
 	glVertex3f(x, x, x);
+	*coord_x += x + tx;
+	*coord_y += x + ty;
+	*coord_z += x + tz; contador += 1;
 	glVertex3f(-x, x, x);
+	// *coord_x +=  - x + tx;
+	// *coord_y += x + ty;
+	// *coord_z += x + tz; contador += 1;
 	glVertex3f(-x, -x, x);
+	// *coord_x +=  - x + tx;
+	// *coord_y += - x + ty;
+	// *coord_z += x + tz; contador += 1;
 	glVertex3f(x, -x, x);
+	// *coord_x +=  x + tx;
+	// *coord_y += - x + ty;
+	// *coord_z += x + tz; contador += 1;
 	glEnd();
 	glBegin(GL_LINE_LOOP);	//  posterior
 	glVertex3f(x, x, -x);
+	*coord_x +=  x + tx;
+	*coord_y +=  x + ty;
+	*coord_z += -x + tz; contador += 1;	
 	glVertex3f(x, -x, -x);
+	*coord_x +=  x + tx;
+	*coord_y += - x + ty;
+	*coord_z += - x + tz; contador += 1;
 	glVertex3f(-x, -x, -x);
+	*coord_x +=  - x + tx;
+	*coord_y += - x + ty;
+	*coord_z +=  - x + tz; contador += 1;	
 	glVertex3f(-x, x, -x);
+	*coord_x +=  - x + tx;
+	*coord_y += x + ty;
+	*coord_z += - x + tz; contador += 1;
 	glEnd();
 	glBegin(GL_LINES);	//  laterais
-	glVertex3f(-x, x, -x);
-	glVertex3f(-x, x, x);
+	glVertex3f(-x, x, -x);	
+	glVertex3f(-x, x, x);	
 	glVertex3f(-x, -x, -x);
-	glVertex3f(-x, -x, x);
+	glVertex3f(-x, -x, x);	
 	glVertex3f(x, x, -x);
 	glVertex3f(x, x, x);
 	glVertex3f(x, -x, -x);
 	glVertex3f(x, -x, x);
 	glEnd();
+	*coord_x /= contador;
+	*coord_y /= contador;
+	*coord_z /= contador;
 
 	// Desenha as faces do cubo preenchidas
 	// Face frontal
@@ -462,18 +498,34 @@ void criaCenario() //quantidade de blocos do cenario
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
 	
 	glEnable(GL_TEXTURE_2D);
+	int auxiliar = 0;
 	for (int k = 0; k < 4; k++) //numero de andares 'k'
 	{
 		int BLOCKS = 11;
 		if(k == 0) BLOCKS = 12;
-		for(int i = 0; i < BLOCKS; i++)//numero de blocos em cada andar 'i'
+		for(int i = 0; i < BLOCKS; i++, auxiliar++)//numero de blocos em cada andar 'i'
 		{
+			float tx, ty, tz;
+			float x = 0,y = 0,z = 0;
 			glPushMatrix();
-			if(k % 2 == 0)
-				glTranslatef( c, 0.0, 1 - 0.5 * k);
-			else
-				glTranslatef( -0.2 + c, 0.0, 1 - 0.5 * k);
-			criaCubo(0.09);
+			if(k % 2 == 0){
+				tx = c;
+				ty = 0.0;
+				tz = 1 - 0.5 * k;
+			}
+			else{
+				tx = - 0.2 + c;
+				ty = 0.0;
+				tz = 1 - 0.5 * k;
+			}
+			glTranslatef(tx, ty, tz);
+			criaCubo(0.09, &x, &y, &z, tx, ty, tz);
+			tBloco b;
+			b.x = x;
+			b.y = y;
+			b.z = z;
+			printf("figura %d. x = %.2f, y = %.2f, z = %.2f\n", auxiliar, x, y, z);
+			blocks[auxiliar] = b;
 			c = c - 0.18;//distancia entre cada bloco
 			glPopMatrix();
 		}
