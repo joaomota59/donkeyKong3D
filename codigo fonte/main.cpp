@@ -10,15 +10,20 @@
 #include <stdio.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include "glm.h"
 #define QUANT_TEX 1
 #define BLOCOS 100 //quantidade de blocos da fase(por onde o personagem vai andar)
-
-
+#include <string>
 //Variaveis Globais usadas para definicao de cores
 float R, G, B;
 bool esquerda = false, direita = false, cima = false, baixo = false; //botoes para mover o personagem
 float personX = 0.75, personY = -0.75; //coordenadas iniciais do personagem
-float personComp = 50, personAlt = 30; //comprimento e altura do personagem 
+float personComp = 50, personAlt = 30; //comprimento e altura do personagem
+std::string MODEL_PATH;
+GLuint elephant;
+float elephantrot;
+char ch = '1';
+GLMmodel* pmodel = NULL;
 
 
 //A-personagem
@@ -52,6 +57,13 @@ typedef struct BlocoTeste
 	float z;
 } tBloco;
 
+struct Vertex
+{
+	float pos[3];
+	float color[3];
+	float texCoord[3];
+};
+
 //Global
 Bloco blocos[BLOCOS];
 tBloco blocks[BLOCOS];
@@ -70,7 +82,10 @@ void criaCubo(float x);
 void criaCenario(void);
 void DefineIluminacao(void);
 void criaEscada(float x);
+void loadModel(void);
+void loadObj(char *fname);
 
+void drawmodel(void);
 // Funcao Principal do C
 int main(int argc, char** argv)
 {
@@ -85,9 +100,11 @@ int main(int argc, char** argv)
 	// Registra a função callback que será chamada a cada intervalo de tempo
 	glutReshapeFunc(reshape); //funcao callback para redesenhar a tela
 	glutDisplayFunc(display); //funcao callback de desenho
+	loadObj("data/mba1.obj");//replace porsche.obj with radar.obj or any other .obj to display it
+
 	glutKeyboardFunc(keyboard); //funcao callback do teclado
 	glutSpecialFunc(keyboard_special);	//funcao callback do teclado especial
-	glutMainLoop(); // executa o loop do OpenGL 
+	glutMainLoop(); // executa o loop do OpenGL
 	return 0; // retorna 0 para o tipo inteiro da funcao main();
 }
 
@@ -95,8 +112,11 @@ int main(int argc, char** argv)
 // Funcao com alguns comandos para a inicializacao do OpenGL;
 void init(void)
 {
-	
-		// Habilita a definição da cor do material a partir da cor corrente
+
+	// Habilita a definição da cor do material a partir da cor corrente
+	//
+
+    glEnable(GL_FOG);
 	glEnable(GL_COLOR_MATERIAL);
 	//Habilita o uso de iluminação
 	glEnable(GL_LIGHTING);
@@ -104,20 +124,20 @@ void init(void)
 	glEnable(GL_LIGHT0);
 	// Habilita o depth-buffering
 	glEnable(GL_DEPTH_TEST);
-	     
-	glEnable(GL_BLEND); 
-		
+
+	glEnable(GL_BLEND);
+
 
 	/* Activa o modelo de sombreagem de "Gouraud". */
 	glShadeModel( GL_SMOOTH );
 
 	/* Activa o z-buffering, de modo a remover as superfícies escondidas */
 	glEnable(GL_DEPTH_TEST);
-	
+
 }
 
 void reshape(int w, int h)
-{             
+{
 	// Reinicializa o sistema de coordenadas
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -140,7 +160,10 @@ void reshape(int w, int h)
 	// dependente da largura e altura da janela, e o
 	// centro dos eixos continua a se localizar no centro
 	// da tela.
+	 glMatrixMode(GL_MODELVIEW);
+     glLoadIdentity();
 }
+
 
 // Funcao usada na funcao callback para controlar as teclas comuns (1 Byte) do teclado
 void keyboard(unsigned char key, int x, int y)
@@ -214,104 +237,37 @@ GLfloat angulo = 0.0f;
 
 // Funcao usada na funcao callback para desenhar na tela
 void display(void)
-{     
+{
+   
 	// muda para o modo GL_MODELVIEW (nao pretendemos alterar a projecao
 	// quando estivermos desenhando na tela)
 	//glMatrixMode(GL_MODELVIEW);
 	// Especifica sistema de coordenadas de projeção
 	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();//Limpa o Buffer de Cores;
-
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Limpar a tela e o Z-buffer			 	 			
-
-	glRotatef( rotate_x, 1.0, 0.0, 0.0 );
-	glRotatef( rotate_y, 0.0, 1.0, 0.0 );
-
-	gluLookAt(0.0f, .1f, 0.1f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f);//visao da camera    
-	 		DefineIluminacao(); 
-	criaCenario(); 
-   
-	  		 
-
-	// glTranslatef( 0.1, 0.0, 0.0 );      // Não está incluído
-	//glClear(GL_DEPTH_BUFFER_BIT); // Limpar a tela e o Z-buffer
-	//glLoadIdentity();//Limpa o Buffer de Cores
-
-
-
-	/*	if(esquerda && personX - 8 >= 0) //se a seta esquerda for pressionada e o eixo X nao sair da tela
-		{
-			personX -= 8; //subtrai 8 pixels
-			for(int n = 0; n < BLOCOS; n++)
-				if(blocos[n].colide)
-				{
-					if(colisao(personX, personY, personComp, personAlt, blocos[n].x, blocos[n].y, blocos[n].comp, blocos[n].alt))
-					{
-						personX += 8;
-						break;
-					}
-				}
-			esquerda = false;
-		}
-		else if(direita && personX + 8 <= 512 - personComp)
-		{
-			personX += 8;
-			for(int n = 0; n < BLOCOS; n++)
-				if(blocos[n].colide)
-				{
-					if(colisao(personX, personY, personComp, personAlt, blocos[n].x, blocos[n].y, blocos[n].comp, blocos[n].alt))
-					{
-						personX -= 8;
-						break;
-					}
-				}
-			cima = false;
-			direita = false;
-		}
-		else if(cima && personY + 8 <= 512 - personAlt)
-		{
-			personY += 8;
-			for(int n = 0; n < BLOCOS; n++)
-				if(blocos[n].colide)
-				{
-					if(colisao(personX, personY, personComp, personAlt, blocos[n].x, blocos[n].y, blocos[n].comp, blocos[n].alt))
-					{
-						personY -= 8;
-						break;
-					}
-				}
-			cima = false;
-		}
-		else if(baixo && personY - 8 >= 0)
-		{
-			personY -= 8;
-			for(int n = 0; n < BLOCOS; n++)
-				if(blocos[n].colide)
-				{
-					if(colisao(personX, personY, personComp, personAlt, blocos[n].x, blocos[n].y, blocos[n].comp, blocos[n].alt))
-					{
-						personY += 8;
-						break;
-					}
-				}
-			baixo = false;
-		}
-		glBegin(GL_QUADS);//posicao do personagem
-		glColor3f(1, 0, 0);
-		glVertex2f(personX, personY); //Vértice superior esquerdo
-		glVertex2f(personX + personComp, personY); //Vértice superior direito
-		glVertex2f(personX + personComp, personY + personAlt); //Vértice inferior direito
-		glVertex2f(personX, personY + personAlt); //Vértice inferior esquerdo
-		glEnd();
-		criaBloco();
-		glutSolidCube(0.4);
-	//	glScalef(x, x, 0);
-	//	glTranslatef(200,200, 0);
-	//	glRotatef(180, 0, 0, 1);
-	*/
 	
-	glutSwapBuffers();
 
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Limpar a tela e o Z-buffer
+	//glColor3ub(0, 0, 0);
+	glClearColor(0.0, 0.0, 0.0, 0.0);
+	glLoadIdentity();//Limpa o Buffer de Cores;
+	glRotatef( rotate_x, 1.0, 0.0, 0.0 );
+	glRotatef( rotate_y, 0.0, 1.0, 0.0 ); 
+	DefineIluminacao();
+  	gluLookAt(0.0f, 0.1f, 0.1f, 0.f, 0.f, 0.f, 0.f, 1.0f, 0.f);//visao da camera
+
+	criaCenario();
+
+	glPushMatrix();
+	glTranslatef( 0.55, 0.0, -0.68);
+	glScalef(0.1, 0.1, 0.1);
+	glRotatef(180, 0.0f, 1.0f, -0.5f);//rotação
+	drawmodel();
+	glPopMatrix();
+	
+
+
+	glutSwapBuffers();
+  	glEnable(GL_LIGHTING);
 }
 
 
@@ -325,7 +281,8 @@ void criaCubo(float x, float* coord_x, float* coord_y, float* coord_z, float tx,
 	glVertex3f(x, x, x);
 	*coord_x += x + tx;
 	*coord_y += x + ty;
-	*coord_z += x + tz; contador += 1;
+	*coord_z += x + tz;
+	contador += 1;
 	glVertex3f(-x, x, x);
 	// *coord_x +=  - x + tx;
 	// *coord_y += x + ty;
@@ -343,25 +300,29 @@ void criaCubo(float x, float* coord_x, float* coord_y, float* coord_z, float tx,
 	glVertex3f(x, x, -x);
 	*coord_x +=  x + tx;
 	*coord_y +=  x + ty;
-	*coord_z += -x + tz; contador += 1;	
+	*coord_z += -x + tz;
+	contador += 1;
 	glVertex3f(x, -x, -x);
 	*coord_x +=  x + tx;
 	*coord_y += - x + ty;
-	*coord_z += - x + tz; contador += 1;
+	*coord_z += - x + tz;
+	contador += 1;
 	glVertex3f(-x, -x, -x);
 	*coord_x +=  - x + tx;
 	*coord_y += - x + ty;
-	*coord_z +=  - x + tz; contador += 1;	
+	*coord_z +=  - x + tz;
+	contador += 1;
 	glVertex3f(-x, x, -x);
 	*coord_x +=  - x + tx;
 	*coord_y += x + ty;
-	*coord_z += - x + tz; contador += 1;
+	*coord_z += - x + tz;
+	contador += 1;
 	glEnd();
 	glBegin(GL_LINES);	//  laterais
-	glVertex3f(-x, x, -x);	
-	glVertex3f(-x, x, x);	
+	glVertex3f(-x, x, -x);
+	glVertex3f(-x, x, x);
 	glVertex3f(-x, -x, -x);
-	glVertex3f(-x, -x, x);	
+	glVertex3f(-x, -x, x);
 	glVertex3f(x, x, -x);
 	glVertex3f(x, x, x);
 	glVertex3f(x, -x, -x);
@@ -453,12 +414,17 @@ void criaCubo(float x, float* coord_x, float* coord_y, float* coord_z, float tx,
 
 void DefineIluminacao (void)
 {
-	
+    
 	GLfloat posLuz[4] = { -0.2, -0.2, -1.0, 1.0 };// Posição da fonte de luz
-	GLfloat luzAmbiente[4] = {1.0, 1.0, 1.0, 1.0};//intensidade /pos da luz que reflete na esfera
-	GLfloat luzDifusa[4] = {0.7, 0.7, 0.7, 1.0};	 // "cor"
-	GLfloat luzEspecular[4] = {1.0, 1.0, 1.0, 1.0}; // "brilho"
-
+	GLfloat luzAmbiente[4] = {1.0, 1.0, 1.0, 1.0};
+	GLfloat luzDifusa[4] = {0.7, 0.7, 0.7, 1.0};	 
+	GLfloat luzEspecular[4] = {1.0, 1.0, 1.0, 1.0}; 
+	GLfloat Ka[4]={0.0, 1.0, 0.2, 0.01},
+            Kd[4]={0.0, 1.0, 0.8, 0.01}, 
+	        Ks[4]={0.0, 1.0, 1.0, 0.01}, 
+            Ke[4]={0.0, 1.0, 0.0, 0.01},
+            local_viewer[4]={1.0, 1.0, 1.0, 1.0},
+            two_side[4]={0.0, 1.0, 0.0, 1.0};
 	// Capacidade de brilho do material
 	GLfloat especularidade[4] = {1.0, 1.0, 1.0, 1.0};
 	GLint especMaterial = 60;
@@ -476,6 +442,15 @@ void DefineIluminacao (void)
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, luzDifusa );
 	glLightfv(GL_LIGHT0, GL_SPECULAR, luzEspecular );
 	glLightfv(GL_LIGHT0, GL_POSITION, posLuz );
+	
+//	glMaterialfv(GL_FRONT, GL_AMBIENT, Ka);
+  //  glMaterialfv(GL_FRONT, GL_DIFFUSE, Kd);
+    //glMaterialfv(GL_FRONT, GL_SPECULAR, Ks);
+    //glMaterialfv(GL_FRONT, GL_EMISSION, Ke);
+    
+	//glLightModelfv(GL_LIGHT_MODEL_LOCAL_VIEWER, local_viewer);
+    glLightModelfv(GL_LIGHT_MODEL_TWO_SIDE, two_side);
+    //glLightModelfv(GL_LIGHT_MODEL_AMBIENT, Ka);
 }
 
 
@@ -496,7 +471,7 @@ void criaCenario() //quantidade de blocos do cenario
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-	
+
 	glEnable(GL_TEXTURE_2D);
 	int auxiliar = 0;
 	for (int k = 0; k < 4; k++) //numero de andares 'k'
@@ -506,14 +481,16 @@ void criaCenario() //quantidade de blocos do cenario
 		for(int i = 0; i < BLOCKS; i++, auxiliar++)//numero de blocos em cada andar 'i'
 		{
 			float tx, ty, tz;
-			float x = 0,y = 0,z = 0;
+			float x = 0, y = 0, z = 0;
 			glPushMatrix();
-			if(k % 2 == 0){
+			if(k % 2 == 0)
+			{
 				tx = c;
 				ty = 0.0;
 				tz = 1 - 0.5 * k;
 			}
-			else{
+			else
+			{
 				tx = - 0.2 + c;
 				ty = 0.0;
 				tz = 1 - 0.5 * k;
@@ -532,7 +509,7 @@ void criaCenario() //quantidade de blocos do cenario
 		c = 1;
 	}
 	glDisable(GL_TEXTURE_2D);  //desativa a textura dos blocos
-	stbi_image_free(uc); 
+	stbi_image_free(uc);
 	unsigned char *uc2 = stbi_load("../texturas/escada.png", &w, &h, NULL, 0);
 	glGenTextures(1, &t); //gera nomes identificadores de texturas
 	glBindTexture(GL_TEXTURE_2D, t); //Ativa a textura atual
@@ -543,7 +520,7 @@ void criaCenario() //quantidade de blocos do cenario
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-	
+
 	glEnable(GL_TEXTURE_2D);//inicia a nova textura
 
 	//fazendo as escadas de cada andar
@@ -564,82 +541,59 @@ void criaCenario() //quantidade de blocos do cenario
 	glPopMatrix();
 
 	glDisable(GL_TEXTURE_2D);//desativa a textura da escada
-	 stbi_image_free(uc2); 
-	
+	stbi_image_free(uc2);
+
 	unsigned char *uc3 = stbi_load("../texturas/barril.jpg", &w, &h, NULL, 0);
 	glGenTextures(1, &t); //gera nomes identificadores de texturas
 	glBindTexture(GL_TEXTURE_2D, t); //Ativa a textura atual
 	//Cria a textura de cada barril
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h,
-				 0, GL_RGB, GL_UNSIGNED_BYTE, uc3); 
+				 0, GL_RGB, GL_UNSIGNED_BYTE, uc3);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	//glEnable(GL_COLOR_MATERIAL);
 	glEnable(GL_TEXTURE_2D);//inicia a textura do barril
 
-	
-	//barril 
-	GLUquadric *quad = gluNewQuadric(); //cria um quadrado
-    gluQuadricNormals(quad,GLU_FLAT);//FLAT significa uma normal para cada face do quadrado
-    gluQuadricOrientation(quad,GLU_INSIDE);//vetor da normal apontando p dentro
-    for(int barril=0,fator=0;barril<4;barril++,fator++){
-	glPushMatrix();
-	glColor3f(0.0f, 0.0f, 0.0f);//cor do objeto verde
-	glRotatef(90, 1.0f, 0.0f, 0.0f);//rotação
-	gluQuadricTexture(quad, GLU_TRUE);//textura do quadrado é ativada
-	if(fator<2)
-		glTranslatef(0.75+(fator-fator*0.9), -0.64, 0.0);//posicao final do barril	
-	else
-		glTranslatef(0.75+((fator-2)-(fator-2)*0.9), -0.74, 0.0);//posicao final do barril
 
-	gluSphere(quad, 0.05, 30, 30);//gera a esfera baseado no objeto do quadrado
-    //gluCylinder(quad,0.1,0.1,0.4,30,30);//(quadrado,raio_1,raio2,altura,slices,stacks)
-	//glutCylinder nao tem as faces de cima e de baixo.. se usar ele da erro na figura do canto 
-	glPopMatrix();
+	//barril
+	GLUquadric *quad = gluNewQuadric(); //cria um quadrado
+	gluQuadricNormals(quad, GLU_FLAT); //FLAT significa uma normal para cada face do quadrado
+	gluQuadricOrientation(quad, GLU_INSIDE); //vetor da normal apontando p dentro
+	for(int barril = 0, fator = 0; barril < 4; barril++, fator++)
+	{
+		glPushMatrix();
+		glColor3f(0.0f, 0.0f, 0.0f);//cor do objeto verde
+		glRotatef(90, 1.0f, 0.0f, 0.0f);//rotação
+		gluQuadricTexture(quad, GLU_TRUE);//textura do quadrado é ativada
+		if(fator < 2)
+			glTranslatef(0.75 + (fator - fator * 0.9), -0.64, 0.0); //posicao final do barril
+		else
+			glTranslatef(0.75 + ((fator - 2) - (fator - 2) * 0.9), -0.74, 0.0); //posicao final do barril
+
+		gluSphere(quad, 0.05, 30, 30);//gera a esfera baseado no objeto do quadrado
+		//gluCylinder(quad,0.1,0.1,0.4,30,30);//(quadrado,raio_1,raio2,altura,slices,stacks)
+		//glutCylinder nao tem as faces de cima e de baixo.. se usar ele da erro na figura do canto
+		glPopMatrix();
 
 	}
 
 	glDisable(GL_TEXTURE_2D);//desativa a textura do barril
-	stbi_image_free(uc3);   
-	
-		 //personagem
+	stbi_image_free(uc3);
+
+	//personagem
 	glPushMatrix();
 	glColor3f(0.0f, 0.0f, 1.0f);
 	glTranslatef(personX, personY, 0.0);
 	glutSolidSphere(0.1, 30, 30);
 	glPopMatrix();
-	
-	
-	
-	/*unsigned char *uc4 = stbi_load("../sprites/donkey_kong_arcade.jpg.jpg", &w, &h, NULL, 0);
-	glGenTextures(1, &t); //gera nomes identificadores de texturas
-	glBindTexture(GL_TEXTURE_2D, t); //Ativa a textura atual
-	//Cria a textura de cada escada
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h,
-				 0, GL_RGB, GL_UNSIGNED_BYTE, uc4);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	
-	glEnable(GL_TEXTURE_2D);//inicia a nova textura
-	//glEnable(GL_COLOR_MATERIAL);
-	glEnable(GL_TEXTURE_2D);//inicia a textura do macaco
-	
-	glPushMatrix(); //cria macaco
-	//glRotatef(45, 1.0f, 0.0f, 0.0f);//rotação
-	glTranslatef( 0.59, -0.02, -0.7);
-	glColor3f(1.0f, 0.0f, 0.0f);	
-	criaEscada(0.09);
-	glPopMatrix();
-	glDisable(GL_TEXTURE_2D);//desativa a textura do macaco
-    stbi_image_free(uc4); */
-} 
+
+}
 
 void criaEscada(float x) //Cria um quadrilátero serve p escada e para alguns personagens
 {
-      
+
 	glBegin(GL_QUADS);
 	glColor3f(1.0f, 0.0f, 0.0f);
 	glNormal3f(0.0, -1.0, 0.0);
@@ -698,4 +652,60 @@ void criaBloco()//bloco do projeto 2D
 		glEnd();
 	}
 
-} 
+}
+
+
+
+
+
+void loadObj(char *fname)
+{
+	FILE *fp;
+	int read;
+	GLfloat x, y, z;
+	char ch;
+	elephant = glGenLists(1);
+	fp = fopen(fname, "r");
+	if (!fp)
+	{
+		printf("can't open file %s\n", fname);
+		exit(1);
+	}
+	glPointSize(2.0);
+	glNewList(elephant, GL_COMPILE);
+	{
+		glPushMatrix();
+		glBegin(GL_POINTS);
+		while(!(feof(fp)))
+		{
+			read = fscanf(fp, "%c %f %f %f", &ch, &x, &y, &z);
+			if(read == 4 && ch == 'v')
+			{
+				glVertex3f(x, y, z);
+			}
+		}
+		glEnd();
+	}
+	glPopMatrix();
+	glEndList();
+	fclose(fp);
+}
+void drawmodel(void)
+{
+
+    if (!pmodel) {
+        pmodel = glmReadOBJ("../models/dk.obj");
+        if (!pmodel) 
+			exit(0);
+        glmUnitize(pmodel);
+        glmFacetNormals(pmodel);
+        glmVertexNormals(pmodel, 90.0);
+    }
+    
+    glmDraw(pmodel, GLM_SMOOTH | GLM_MATERIAL);
+    
+}
+
+
+
+

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Project>
-	<Libs Value="-static -lglut32 -lglu32 -lopengl32 -lwinmm -lgdi32"/>
+	<Libs Value="-mwindows -static -lglut32 -lglu32 -lopengl32 -lwinmm -lgdi32"/>
 	<Flags Value="-DGLUT_STATIC"/>
 	<Target Value="Projeto.exe"/>
 	<CommandLine Value=""/>
@@ -12,10 +12,12 @@
 	<EnableTheme Value="Yes"/>
 	<RequiresAdmin Value="No"/>
 	<CompilerType Value="CPP"/>
-	<AppType Value="CONSOLE"/>
+	<AppType Value="GUI"/>
 	<Files>
 		<File Name="main.cpp"/>
 		<File Name="stb_image.h"/>
+		<File Name="glm.h"/>
+		<File Name="glm.c"/>
 	</Files>
 	<AppIcon>
 		0000010001003030000001002000A82500001600000028000000300000006000
