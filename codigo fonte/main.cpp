@@ -82,10 +82,9 @@ void criaCubo(float x);
 void criaCenario(void);
 void DefineIluminacao(void);
 void criaEscada(float x);
-void loadModel(void);
+void drawModel(char *fname);
 void loadObj(char *fname);
 
-void drawmodel(void);
 // Funcao Principal do C
 int main(int argc, char** argv)
 {
@@ -258,10 +257,11 @@ void display(void)
 	criaCenario();
 
 	glPushMatrix();
+	glColor3f(0.2f, 0.0f, 0.0f);
 	glTranslatef( 0.55, 0.0, -0.68);
 	glScalef(0.1, 0.1, 0.1);
 	glRotatef(180, 0.0f, 1.0f, -0.5f);//rotação
-	drawmodel();
+	drawModel("../models/dk.obj");
 	glPopMatrix();
 	
 
@@ -690,11 +690,11 @@ void loadObj(char *fname)
 	glEndList();
 	fclose(fp);
 }
-void drawmodel(void)
+void drawModel(char *fname)
 {
 
     if (!pmodel) {
-        pmodel = glmReadOBJ("../models/dk.obj");
+        pmodel = glmReadOBJ(fname);
         if (!pmodel) 
 			exit(0);
         glmUnitize(pmodel);
@@ -702,7 +702,7 @@ void drawmodel(void)
         glmVertexNormals(pmodel, 90.0);
     }
     
-    glmDraw(pmodel, GLM_SMOOTH | GLM_MATERIAL);
+    glmDraw(pmodel, GLM_SMOOTH | GLM_FLAT);
     
 }
 
