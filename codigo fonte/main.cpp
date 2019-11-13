@@ -28,17 +28,26 @@ GLMmodel* pmodel = NULL;
 
 //A-personagem
 //B-algo que vai colidir com o personagem
-bool colisao(float aX, float aY, float aComp, float aAlt, float bX, float bY, float bComp, float bAlt)
-{
-	if(aY + aAlt < bY)
+// bool colisao(float aX, float aY, float aComp, float aAlt, float bX, float bY, float bComp, float bAlt)
+// {
+// 	if(aY + aAlt < bY)
+// 		return false;
+// 	else if(aY > bY + bAlt)
+// 		return false;
+// 	else if(aX + aComp < bX)
+// 		return false;
+// 	else if(aX > bX + bComp)
+// 		return false;
+// 	return true;
+// }
+
+bool colisao(float x, float y, float z, float raio){
+	printf("d = %.2f ", sqrt((- x + personX)  * (- x +  personX) + ( - y + personY) * (- y + personY) + (-z + 1) * (-z + 1)));
+	printf("s = 0.3 + %.5f\n", raio);
+	if(sqrt((- x + personX)  * (- x +  personX) + ( - y + personY) * (- y + personY) + (-z + 1) * (-z + 1)) <= (0.3 + raio))
+		return true;
+	else 
 		return false;
-	else if(aY > bY + bAlt)
-		return false;
-	else if(aX + aComp < bX)
-		return false;
-	else if(aX > bX + bComp)
-		return false;
-	return true;
 }
 
 struct Bloco //Blocos do cenário
@@ -55,6 +64,8 @@ typedef struct BlocoTeste
 	float x;
 	float y;
 	float z;
+	float raio;
+	bool colide;
 } tBloco;
 
 struct Vertex
@@ -99,7 +110,8 @@ int main(int argc, char** argv)
 	// Registra a função callback que será chamada a cada intervalo de tempo
 	glutReshapeFunc(reshape); //funcao callback para redesenhar a tela
 	glutDisplayFunc(display); //funcao callback de desenho
-	loadObj("data/mba1.obj");//replace porsche.obj with radar.obj or any other .obj to display it
+	glTranslatef(1, 1, 1);
+	loadObj("../models/dk.obj");//replace porsche.obj with radar.obj or any other .obj to display it
 
 	glutKeyboardFunc(keyboard); //funcao callback do teclado
 	glutSpecialFunc(keyboard_special);	//funcao callback do teclado especial
@@ -176,6 +188,7 @@ void keyboard(unsigned char key, int x, int y)
 }
 
 //Funcao para controlar as teclas especiais (2 Byte) do teclado
+int flag = 0;
 void keyboard_special(int key, int x, int y)
 {
 	switch(key)
@@ -215,6 +228,19 @@ void keyboard_special(int key, int x, int y)
 		break;
 	case GLUT_KEY_UP://seta cima
 		cima = true;
+		// if(personY < 1)
+		// 	personY += 0.035;
+		for(int i = 12; i < 23; i ++)
+				if(personY < 1 && blocks[i].colide &&!colisao(blocks[i].x, blocks[i].y, blocks[i].z, blocks[i].raio) ){
+					flag = 1;
+					printf("figura %d ", i);
+				}	
+		if(flag == 0)
+			personY += 0.035;
+		else
+		{
+			printf("colidiu\n");
+		}
 		glutPostRedisplay();
 		break;
 	case GLUT_KEY_DOWN://seta baixo
@@ -271,7 +297,7 @@ void display(void)
 }
 
 
-void criaCubo(float x, float* coord_x, float* coord_y, float* coord_z, float tx, float ty, float tz)
+void criaCubo(float x, float* coord_x, float* coord_y, float* coord_z, float tx, float ty, float tz, float * raio)
 {
 	int contador = 0;
 	// Desenhas as linhas das "bordas" do cubo
@@ -279,22 +305,23 @@ void criaCubo(float x, float* coord_x, float* coord_y, float* coord_z, float tx,
 	glLineWidth(1.6f);
 	glBegin(GL_LINE_LOOP);	// frontal
 	glVertex3f(x, x, x);
+	*raio = fabs(tx);
 	*coord_x += x + tx;
 	*coord_y += x + ty;
 	*coord_z += x + tz;
 	contador += 1;
 	glVertex3f(-x, x, x);
-	// *coord_x +=  - x + tx;
-	// *coord_y += x + ty;
-	// *coord_z += x + tz; contador += 1;
+	*coord_x +=  - x + tx;
+	*coord_y += x + ty;
+	*coord_z += x + tz; contador += 1;
 	glVertex3f(-x, -x, x);
-	// *coord_x +=  - x + tx;
-	// *coord_y += - x + ty;
-	// *coord_z += x + tz; contador += 1;
+	*coord_x +=  - x + tx;
+	*coord_y += - x + ty;
+	*coord_z += x + tz; contador += 1;
 	glVertex3f(x, -x, x);
-	// *coord_x +=  x + tx;
-	// *coord_y += - x + ty;
-	// *coord_z += x + tz; contador += 1;
+	*coord_x +=  x + tx;
+	*coord_y += - x + ty;
+	*coord_z += x + tz; contador += 1;
 	glEnd();
 	glBegin(GL_LINE_LOOP);	//  posterior
 	glVertex3f(x, x, -x);
@@ -496,12 +523,18 @@ void criaCenario() //quantidade de blocos do cenario
 				tz = 1 - 0.5 * k;
 			}
 			glTranslatef(tx, ty, tz);
-			criaCubo(0.09, &x, &y, &z, tx, ty, tz);
+			float raio;
+			criaCubo(0.09, &x, &y, &z, tx, ty, tz, &raio);
 			tBloco b;
 			b.x = x;
 			b.y = y;
 			b.z = z;
-			printf("figura %d. x = %.2f, y = %.2f, z = %.2f\n", auxiliar, x, y, z);
+			b.raio = raio;
+			if(i == 0 || i == BLOCKS - 1)
+				b.colide = false;
+			else
+				b.colide = true;
+			// printf("figura %d. x = %.2f, y = %.2f, z = %.2f\n", auxiliar, x, y, z);
 			blocks[auxiliar] = b;
 			c = c - 0.18;//distancia entre cada bloco
 			glPopMatrix();
@@ -675,6 +708,7 @@ void loadObj(char *fname)
 	glNewList(elephant, GL_COMPILE);
 	{
 		glPushMatrix();
+//	   	glTranslatef(0.0, -18, 0.0);
 		glBegin(GL_POINTS);
 		while(!(feof(fp)))
 		{
@@ -705,7 +739,3 @@ void drawModel(char *fname)
     glmDraw(pmodel, GLM_SMOOTH | GLM_FLAT);
     
 }
-
-
-
-
