@@ -24,6 +24,7 @@ GLuint elephant;
 float elephantrot;
 char ch = '1';
 GLMmodel* pmodel = NULL;
+GLMmodel* pmode2 = NULL;
 
 
 //A-personagem
@@ -82,6 +83,7 @@ void criaCubo(float x);
 void criaCenario(void);
 void DefineIluminacao(void);
 void criaEscada(float x);
+void criaPersonagens(void);
 void drawModel(char *fname);
 void loadObj(char *fname);
 
@@ -115,7 +117,7 @@ void init(void)
 	// Habilita a definição da cor do material a partir da cor corrente
 	//
 
-    glEnable(GL_FOG);
+	glEnable(GL_FOG);
 	glEnable(GL_COLOR_MATERIAL);
 	//Habilita o uso de iluminação
 	glEnable(GL_LIGHTING);
@@ -159,8 +161,8 @@ void reshape(int w, int h)
 	// dependente da largura e altura da janela, e o
 	// centro dos eixos continua a se localizar no centro
 	// da tela.
-	 glMatrixMode(GL_MODELVIEW);
-     glLoadIdentity();
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
 }
 
 
@@ -237,37 +239,30 @@ GLfloat angulo = 0.0f;
 // Funcao usada na funcao callback para desenhar na tela
 void display(void)
 {
-   
+
 	// muda para o modo GL_MODELVIEW (nao pretendemos alterar a projecao
 	// quando estivermos desenhando na tela)
 	//glMatrixMode(GL_MODELVIEW);
 	// Especifica sistema de coordenadas de projeção
 	glMatrixMode(GL_PROJECTION);
-	
+
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Limpar a tela e o Z-buffer
 	//glColor3ub(0, 0, 0);
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glLoadIdentity();//Limpa o Buffer de Cores;
 	glRotatef( rotate_x, 1.0, 0.0, 0.0 );
-	glRotatef( rotate_y, 0.0, 1.0, 0.0 ); 
+	glRotatef( rotate_y, 0.0, 1.0, 0.0 );
 	DefineIluminacao();
-  	gluLookAt(0.0f, 0.1f, 0.1f, 0.f, 0.f, 0.f, 0.f, 1.0f, 0.f);//visao da camera
+	gluLookAt(0.0f, 0.1f, 0.1f, 0.f, 0.f, 0.f, 0.f, 1.0f, 0.f);//visao da camera
 
 	criaCenario();
+	criaPersonagens();
 
-	glPushMatrix();
-	glColor3f(0.2f, 0.0f, 0.0f);
-	glTranslatef( 0.55, 0.0, -0.68);
-	glScalef(0.1, 0.1, 0.1);
-	glRotatef(180, 0.0f, 1.0f, -0.5f);//rotação
-	drawModel("../models/dk.obj");
-	glPopMatrix();
-	
 
 
 	glutSwapBuffers();
-  	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHTING);
 }
 
 
@@ -414,17 +409,17 @@ void criaCubo(float x, float* coord_x, float* coord_y, float* coord_z, float tx,
 
 void DefineIluminacao (void)
 {
-    
+
 	GLfloat posLuz[4] = { -0.2, -0.2, -1.0, 1.0 };// Posição da fonte de luz
 	GLfloat luzAmbiente[4] = {1.0, 1.0, 1.0, 1.0};
-	GLfloat luzDifusa[4] = {0.7, 0.7, 0.7, 1.0};	 
-	GLfloat luzEspecular[4] = {1.0, 1.0, 1.0, 1.0}; 
-	GLfloat Ka[4]={0.0, 1.0, 0.2, 0.01},
-            Kd[4]={0.0, 1.0, 0.8, 0.01}, 
-	        Ks[4]={0.0, 1.0, 1.0, 0.01}, 
-            Ke[4]={0.0, 1.0, 0.0, 0.01},
-            local_viewer[4]={1.0, 1.0, 1.0, 1.0},
-            two_side[4]={0.0, 1.0, 0.0, 1.0};
+	GLfloat luzDifusa[4] = {0.7, 0.7, 0.7, 1.0};
+	GLfloat luzEspecular[4] = {1.0, 1.0, 1.0, 1.0};
+	GLfloat Ka[4] = {0.0, 1.0, 0.2, 0.01},
+					Kd[4] = {0.0, 1.0, 0.8, 0.01},
+							Ks[4] = {0.0, 1.0, 1.0, 0.01},
+									Ke[4] = {0.0, 1.0, 0.0, 0.01},
+											local_viewer[4] = {1.0, 1.0, 1.0, 1.0},
+													two_side[4] = {0.0, 1.0, 0.0, 1.0};
 	// Capacidade de brilho do material
 	GLfloat especularidade[4] = {1.0, 1.0, 1.0, 1.0};
 	GLint especMaterial = 60;
@@ -442,15 +437,15 @@ void DefineIluminacao (void)
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, luzDifusa );
 	glLightfv(GL_LIGHT0, GL_SPECULAR, luzEspecular );
 	glLightfv(GL_LIGHT0, GL_POSITION, posLuz );
-	
+
 //	glMaterialfv(GL_FRONT, GL_AMBIENT, Ka);
-  //  glMaterialfv(GL_FRONT, GL_DIFFUSE, Kd);
-    //glMaterialfv(GL_FRONT, GL_SPECULAR, Ks);
-    //glMaterialfv(GL_FRONT, GL_EMISSION, Ke);
-    
+	//  glMaterialfv(GL_FRONT, GL_DIFFUSE, Kd);
+	//glMaterialfv(GL_FRONT, GL_SPECULAR, Ks);
+	//glMaterialfv(GL_FRONT, GL_EMISSION, Ke);
+
 	//glLightModelfv(GL_LIGHT_MODEL_LOCAL_VIEWER, local_viewer);
-    glLightModelfv(GL_LIGHT_MODEL_TWO_SIDE, two_side);
-    //glLightModelfv(GL_LIGHT_MODEL_AMBIENT, Ka);
+	glLightModelfv(GL_LIGHT_MODEL_TWO_SIDE, two_side);
+	//glLightModelfv(GL_LIGHT_MODEL_AMBIENT, Ka);
 }
 
 
@@ -474,7 +469,7 @@ void criaCenario() //quantidade de blocos do cenario
 
 	glEnable(GL_TEXTURE_2D);
 	int auxiliar = 0;
-	for (int k = 0; k < 4; k++) //numero de andares 'k'
+	for (int k = 0; k < 5; k++) //numero de andares 'k'
 	{
 		int BLOCKS = 11;
 		if(k == 0) BLOCKS = 12;
@@ -483,6 +478,7 @@ void criaCenario() //quantidade de blocos do cenario
 			float tx, ty, tz;
 			float x = 0, y = 0, z = 0;
 			glPushMatrix();
+			if(k<4 || (k==4 && i>3 && i<6))
 			if(k % 2 == 0)
 			{
 				tx = c;
@@ -524,18 +520,28 @@ void criaCenario() //quantidade de blocos do cenario
 	glEnable(GL_TEXTURE_2D);//inicia a nova textura
 
 	//fazendo as escadas de cada andar
-	glPushMatrix();
+	glPushMatrix();//escada 1
 	glTranslatef( -0.9, -0.09, 0.75);
 	glScalef(0.8, 0.0, 1.75);
 	criaEscada(0.09);
 	glPopMatrix();
-	glPushMatrix();
+	glPushMatrix();//escada 2
 	glTranslatef( 0.8 , -0.09, 0.25);
 	glScalef(0.8, 0.0, 1.75);
 	criaEscada(0.09);
 	glPopMatrix();
-	glPushMatrix();
+	glPushMatrix();//escada 3
 	glTranslatef( -0.80, -0.09, -0.25);
+	glScalef(0.8, 0.0, 1.75);
+	criaEscada(0.09);
+	glPopMatrix();
+	glPushMatrix();//escada 4
+	glTranslatef( -0.80, -0.09, -0.25);
+	glScalef(0.8, 0.0, 1.75);
+	criaEscada(0.09);
+	glPopMatrix();
+	glPushMatrix();//escada 5
+	glTranslatef( 0.25, -0.09, -0.745);
 	glScalef(0.8, 0.0, 1.75);
 	criaEscada(0.09);
 	glPopMatrix();
@@ -660,6 +666,7 @@ void criaBloco()//bloco do projeto 2D
 
 void loadObj(char *fname)
 {
+
 	FILE *fp;
 	int read;
 	GLfloat x, y, z;
@@ -693,19 +700,58 @@ void loadObj(char *fname)
 void drawModel(char *fname)
 {
 
-    if (!pmodel) {
-        pmodel = glmReadOBJ(fname);
-        if (!pmodel) 
+	if (!pmodel)
+	{
+		pmodel = glmReadOBJ(fname);
+		if (!pmodel)
 			exit(0);
-        glmUnitize(pmodel);
-        glmFacetNormals(pmodel);
-        glmVertexNormals(pmodel, 90.0);
-    }
-    
-    glmDraw(pmodel, GLM_SMOOTH | GLM_FLAT);
-    
+		glmUnitize(pmodel);
+		glmFacetNormals(pmodel);
+		glmVertexNormals(pmodel, 90.0);
+		glmDraw(pmodel, GLM_SMOOTH | GLM_FLAT);
+	}
+		glmDraw(pmodel, GLM_SMOOTH | GLM_FLAT);
+
+
 }
 
+void drawMode2(char *fname)
+{
+	if (!pmode2)
+	{
+		pmode2 = glmReadOBJ(fname);
+		if (!pmode2)
+			exit(0);
+		glmUnitize(pmode2);
+		glmFacetNormals(pmode2);
+		glmVertexNormals(pmode2, 90.0);
+		glmDraw(pmode2, GLM_SMOOTH | GLM_FLAT);
+	}
+		glmDraw(pmode2, GLM_SMOOTH | GLM_FLAT);
+}
+
+void criaPersonagens()
+{
+
+	//cria macaco
+	glPushMatrix();
+	glColor3f(0.2f, 0.0f, 0.0f);
+	glTranslatef( 0.55, 0.0, -0.68);
+	glScalef(0.1, 0.1, 0.1);
+	glRotatef(180, 0.0f, 1.0f, -0.5f);//rotação
+	drawModel("../models/dk.obj");
+	glPopMatrix();
+
+	//cria princesa
+	glPushMatrix();
+	glColor3f(0.5f, 0.5f, 0.0f);
+	glTranslatef( 0.23, 0.0, -1.21);
+	glScalef(0.1, 0.1, 0.1);
+	glRotatef(180, 0.0f, 1.0f, -0.5f);//rotação
+	drawMode2("../models/leia.obj");
+	glPopMatrix();
+
+}
 
 
 
