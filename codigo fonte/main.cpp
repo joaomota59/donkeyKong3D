@@ -42,9 +42,11 @@ GLMmodel* pmodel = NULL;
 // }
 
 bool colisao(float x, float y, float z, float raio){
-	printf("d = %.2f ", sqrt((- x + personX)  * (- x +  personX) + ( - y + personY) * (- y + personY) + (-z + 1) * (-z + 1)));
-	printf("s = 0.3 + %.5f\n", raio);
-	if(sqrt((- x + personX)  * (- x +  personX) + ( - y + personY) * (- y + personY) + (-z + 1) * (-z + 1)) <= (0.3 + raio))
+	float d = sqrt((- x + personX)  * (- x +  personX) + ( - y + personY) * (- y + personY) + (-z + 1) * (-z + 1));
+	printf("d = %.2f ", d);
+	printf("s = %.2f\n", 0.25 + raio);
+	
+	if(d <= (0.3 + raio))
 		return true;
 	else 
 		return false;
@@ -222,16 +224,17 @@ void keyboard_special(int key, int x, int y)
 		break;
 	case GLUT_KEY_RIGHT://seta direita
 		direita = true;
-		if(personX < 1)
+		//if(personX < 1)
 			personX += 0.035;
 		glutPostRedisplay();
 		break;
 	case GLUT_KEY_UP://seta cima
 		cima = true;
+		flag = 0;
 		// if(personY < 1)
 		// 	personY += 0.035;
-		for(int i = 12; i < 23; i ++)
-				if(personY < 1 && blocks[i].colide &&!colisao(blocks[i].x, blocks[i].y, blocks[i].z, blocks[i].raio) ){
+		for(int i = 12; i < 22; i ++)
+				if(personY < 1 && blocks[i].colide && colisao(blocks[i].x, blocks[i].y, blocks[i].z, blocks[i].raio) ){
 					flag = 1;
 					printf("figura %d ", i);
 				}	
@@ -241,11 +244,27 @@ void keyboard_special(int key, int x, int y)
 		{
 			printf("colidiu\n");
 		}
+		flag = 0;
 		glutPostRedisplay();
+		flag = 0;
 		break;
 	case GLUT_KEY_DOWN://seta baixo
 		baixo = true;
+		flag = 0;
+		for(int i = 12; i < 22; i ++)
+				if(personY < 1 && blocks[i].colide && colisao(blocks[i].x, blocks[i].y, blocks[i].z, blocks[i].raio) ){
+					flag = 1;
+					printf("figura %d ", i);
+				}	
+		if(flag == 0)
+			personY -= 0.035;
+		else
+		{
+			printf("colidiu\n");
+		}
+		flag = 0;
 		glutPostRedisplay();
+		flag = 0;
 		break;
 	default:
 		break;
@@ -530,7 +549,7 @@ void criaCenario() //quantidade de blocos do cenario
 			b.y = y;
 			b.z = z;
 			b.raio = raio;
-			if(i == 0 || i == BLOCKS - 1)
+			if(i == BLOCKS - 1 || i == BLOCKS - 2|| i == BLOCKS - 3) //|| i == BLOCKS - 4 || i == BLOCKS - 5)
 				b.colide = false;
 			else
 				b.colide = true;
