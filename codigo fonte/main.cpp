@@ -1,5 +1,5 @@
 //*********************************************************************
-//  Computacao Gr�fica usando OpenGL
+//  Computacao Gr?fica usando OpenGL
 //  Autor: C.DANIEL && J.LUCAS
 //*********************************************************************
 
@@ -17,7 +17,7 @@
 //Variaveis Globais usadas para definicao de cores
 float R, G, B;
 bool esquerda = false, direita = false, cima = false, baixo = false; //botoes para mover o personagem
-float personX = 0.75, personY = -0.75; //coordenadas iniciais do personagem
+float personX = 0.85, personZ = 0.81; //coordenadas iniciais do personagem
 float personComp = 50, personAlt = 30; //comprimento e altura do personagem
 std::string MODEL_PATH;
 GLuint elephant;
@@ -43,7 +43,7 @@ GLMmodel* pmode2 = NULL;
 // }
 
 bool colisao(float x, float y, float z, float raio){
-	float d = sqrt((- x + personX)  * (- x +  personX) + ( - y + personY) * (- y + personY) + (-z + 1) * (-z + 1));
+	float d = sqrt((- x + personX)  * (- x +  personX) + ( - y + personZ) * (- y + personZ) + (-z + 1) * (-z + 1));
 	printf("d = %.2f ", d);
 	printf("s = %.2f\n", 0.25 + raio);
 	
@@ -53,7 +53,7 @@ bool colisao(float x, float y, float z, float raio){
 		return false;
 }
 
-struct Bloco //Blocos do cen�rio
+struct Bloco //Blocos do cen?rio
 {
 	float x;
 	float y;
@@ -111,7 +111,7 @@ int main(int argc, char** argv)
 
 	init(); // Chama a funcao init();
 	glEnable(GL_DEPTH_TEST);// Habilitando o teste de profundidade do Z-buffer
-	// Registra a fun��o callback que ser� chamada a cada intervalo de tempo
+	// Registra a fun??o callback que ser? chamada a cada intervalo de tempo
 	glutReshapeFunc(reshape); //funcao callback para redesenhar a tela
 	glutDisplayFunc(display); //funcao callback de desenho
 	glTranslatef(1, 1, 1);
@@ -128,14 +128,14 @@ int main(int argc, char** argv)
 void init(void)
 {
 
-	// Habilita a defini��o da cor do material a partir da cor corrente
+	// Habilita a defini??o da cor do material a partir da cor corrente
 	//
 
 	glEnable(GL_FOG);
 	glEnable(GL_COLOR_MATERIAL);
-	//Habilita o uso de ilumina��o
+	//Habilita o uso de ilumina??o
 	glEnable(GL_LIGHTING);
-	// Habilita a luz de n�mero 0
+	// Habilita a luz de n?mero 0
 	glEnable(GL_LIGHT0);
 	// Habilita o depth-buffering
 	glEnable(GL_DEPTH_TEST);
@@ -146,7 +146,7 @@ void init(void)
 	/* Activa o modelo de sombreagem de "Gouraud". */
 	glShadeModel( GL_SMOOTH );
 
-	/* Activa o z-buffering, de modo a remover as superf�cies escondidas */
+	/* Activa o z-buffering, de modo a remover as superf?cies escondidas */
 	glEnable(GL_DEPTH_TEST);
 
 }
@@ -233,15 +233,15 @@ void keyboard_special(int key, int x, int y)
 	case GLUT_KEY_UP://seta cima
 		cima = true;
 		flag = 0;
-		// if(personY < 1)
-		// 	personY += 0.035;
+		// if(personZ < 1)
+		// 	personZ += 0.035;
 		for(int i = 12; i < 22; i ++)
-				if(personY < 1 && blocks[i].colide && colisao(blocks[i].x, blocks[i].y, blocks[i].z, blocks[i].raio) ){
+				if(personZ < 1 && blocks[i].colide && colisao(blocks[i].x, blocks[i].y, blocks[i].z, blocks[i].raio) ){
 					flag = 1;
 					printf("figura %d ", i);
 				}	
 		if(flag == 0)
-			personY += 0.035;
+			personZ += 0.035;
 		else
 		{
 			printf("colidiu\n");
@@ -254,12 +254,12 @@ void keyboard_special(int key, int x, int y)
 		baixo = true;
 		flag = 0;
 		for(int i = 12; i < 22; i ++)
-				if(personY < 1 && blocks[i].colide && colisao(blocks[i].x, blocks[i].y, blocks[i].z, blocks[i].raio) ){
+				if(personZ < 1 && blocks[i].colide && colisao(blocks[i].x, blocks[i].y, blocks[i].z, blocks[i].raio) ){
 					flag = 1;
 					printf("figura %d ", i);
 				}	
 		if(flag == 0)
-			personY -= 0.035;
+			personZ -= 0.035;
 		else
 		{
 			printf("colidiu\n");
@@ -276,7 +276,7 @@ void keyboard_special(int key, int x, int y)
 }
 
 GLfloat angulo = 0.0f;
-// Fun��o callback de redesenho da janela de visualiza��o
+// Fun??o callback de redesenho da janela de visualiza??o
 
 
 
@@ -288,7 +288,7 @@ void display(void)
 	// muda para o modo GL_MODELVIEW (nao pretendemos alterar a projecao
 	// quando estivermos desenhando na tela)
 	//glMatrixMode(GL_MODELVIEW);
-	// Especifica sistema de coordenadas de proje��o
+	// Especifica sistema de coordenadas de proje??o
 	glMatrixMode(GL_PROJECTION);
 
 
@@ -456,7 +456,7 @@ void criaCubo(float x, float* coord_x, float* coord_y, float* coord_z, float tx,
 void DefineIluminacao (void)
 {
 
-	GLfloat posLuz[4] = { -0.2, -0.2, -1.0, 1.0 };// Posi��o da fonte de luz
+	GLfloat posLuz[4] = { -0.2, -0.2, -1.0, 1.0 };// Posi??o da fonte de luz
 	GLfloat luzAmbiente[4] = {1.0, 1.0, 1.0, 1.0};
 	GLfloat luzDifusa[4] = {0.7, 0.7, 0.7, 1.0};
 	GLfloat luzEspecular[4] = {1.0, 1.0, 1.0, 1.0};
@@ -470,15 +470,15 @@ void DefineIluminacao (void)
 	GLfloat especularidade[4] = {1.0, 1.0, 1.0, 1.0};
 	GLint especMaterial = 60;
 
-	// Define a reflet�ncia do material
+	// Define a reflet?ncia do material
 	glMaterialfv(GL_FRONT, GL_SPECULAR, especularidade);
-	// Define a concentra��o do brilho
+	// Define a concentra??o do brilho
 	glMateriali(GL_FRONT, GL_SHININESS, especMaterial);
 
 	// Ativa o uso da luz ambiente
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, luzAmbiente);
 
-	// Define os par�metros da luz de n�mero 0
+	// Define os par?metros da luz de n?mero 0
 	glLightfv(GL_LIGHT0, GL_AMBIENT, luzAmbiente);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, luzDifusa );
 	glLightfv(GL_LIGHT0, GL_SPECULAR, luzEspecular );
@@ -622,8 +622,8 @@ void criaCenario() //quantidade de blocos do cenario
 	{
 		glPushMatrix();
 		glColor3f(0.0f, 0.0f, 0.0f);//cor do objeto verde
-		glRotatef(90, 1.0f, 0.0f, 0.0f);//rota��o
-		gluQuadricTexture(quad, GLU_TRUE);//textura do quadrado � ativada
+		glRotatef(90, 1.0f, 0.0f, 0.0f);//rota??o
+		gluQuadricTexture(quad, GLU_TRUE);//textura do quadrado ? ativada
 		if(fator < 2)
 			glTranslatef(0.75 + (fator - fator * 0.9), -0.64, 0.0); //posicao final do barril
 		else
@@ -642,14 +642,14 @@ void criaCenario() //quantidade de blocos do cenario
 	//personagem
 	glPushMatrix();
 	glColor3f(0.0f, 0.0f, 1.0f);
-	glTranslatef(personX, personY, 0.0);
+	glTranslatef(personX, -0.03, personZ);
 	glutSolidSphere(0.1, 30, 30);
 	glPopMatrix();
 
 
 }
 
-void criaEscada(float x) //Cria um quadril�tero serve p escada e para alguns personagens
+void criaEscada(float x) //Cria um quadril?tero serve p escada e para alguns personagens
 {
 
 	glBegin(GL_QUADS);
@@ -696,17 +696,17 @@ void criaBloco()//bloco do projeto 2D
 		glLineWidth(5);//espessura das linhas
 		glBegin(GL_LINES);
 		glColor3f(1, 0, 0);
-		glVertex2f(blocos[n].x, blocos[n].y); //V�rtice inferior esquerdo
-		glVertex2f(blocos[n].x + blocos[n].comp, blocos[n].y); //V�rtice inferior direito
-		glVertex2f(blocos[n].x + blocos[n].comp, blocos[n].y + blocos[n].alt); //V�rtice superior direito
-		glVertex2f(blocos[n].x, blocos[n].y + blocos[n].alt); //V�rtice superior esquerdo
+		glVertex2f(blocos[n].x, blocos[n].y); //V?rtice inferior esquerdo
+		glVertex2f(blocos[n].x + blocos[n].comp, blocos[n].y); //V?rtice inferior direito
+		glVertex2f(blocos[n].x + blocos[n].comp, blocos[n].y + blocos[n].alt); //V?rtice superior direito
+		glVertex2f(blocos[n].x, blocos[n].y + blocos[n].alt); //V?rtice superior esquerdo
 		glEnd();
 		glLineWidth(4);//espessura das linhas
 		glBegin(GL_LINES);//linhas cruzadas
-		glVertex2f(blocos[n].x, blocos[n].y); //V�rtice inferior esquerdo
-		glVertex2f((int)((blocos[n].x + blocos[n].comp + blocos[n].x) / 2), (int)((blocos[n].y + blocos[n].alt + blocos[n].y + blocos[n].alt) / 2)); //V�rtice superior (fica no meio)
-		glVertex2f((int)((blocos[n].x + blocos[n].comp + blocos[n].x) / 2), (int)((blocos[n].y + blocos[n].alt + blocos[n].y + blocos[n].alt) / 2)); //V�rtice superior (fica no meio)
-		glVertex2f(blocos[n].x + blocos[n].comp, blocos[n].y); //V�rtice inferior direito
+		glVertex2f(blocos[n].x, blocos[n].y); //V?rtice inferior esquerdo
+		glVertex2f((int)((blocos[n].x + blocos[n].comp + blocos[n].x) / 2), (int)((blocos[n].y + blocos[n].alt + blocos[n].y + blocos[n].alt) / 2)); //V?rtice superior (fica no meio)
+		glVertex2f((int)((blocos[n].x + blocos[n].comp + blocos[n].x) / 2), (int)((blocos[n].y + blocos[n].alt + blocos[n].y + blocos[n].alt) / 2)); //V?rtice superior (fica no meio)
+		glVertex2f(blocos[n].x + blocos[n].comp, blocos[n].y); //V?rtice inferior direito
 		glEnd();
 	}
 
@@ -791,7 +791,7 @@ void criaPersonagens()
 	glColor3f(0.2f, 0.0f, 0.0f);
 	glTranslatef( 0.55, 0.0, -0.68);
 	glScalef(0.1, 0.1, 0.1);
-	glRotatef(180, 0.0f, 1.0f, -0.5f);//rota��o
+	glRotatef(180, 0.0f, 1.0f, -0.5f);//rota??o
 	drawModel("../models/dk.obj");
 	glPopMatrix();
 
@@ -800,11 +800,8 @@ void criaPersonagens()
 	glColor3f(0.5f, 0.5f, 0.0f);
 	glTranslatef( 0.23, 0.0, -1.21);
 	glScalef(0.1, 0.1, 0.1);
-	glRotatef(180, 0.0f, 1.0f, -0.5f);//rota��o
+	glRotatef(180, 0.0f, 1.0f, -0.5f);//rota??o
 	drawMode2("../models/leia.obj");
 	glPopMatrix();
 
 }
-
-
-
