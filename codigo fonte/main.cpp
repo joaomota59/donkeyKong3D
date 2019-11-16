@@ -17,7 +17,7 @@
 //Variaveis Globais usadas para definicao de cores
 float R, G, B;
 bool esquerda = false, direita = false, cima = false, baixo = false; //botoes para mover o personagem
-float personX = 0.85, personZ = 0.81; //coordenadas iniciais do personagem
+float personX = 0.85, personZ = 0.83; //coordenadas iniciais do personagem
 float personComp = 50, personAlt = 30; //comprimento e altura do personagem
 std::string MODEL_PATH;
 GLuint elephant;
@@ -25,9 +25,11 @@ float elephantrot;
 char ch = '1';
 GLMmodel* pmodel = NULL;
 GLMmodel* pmode2 = NULL;
+bool pulo=false;
+int contPulo=0;
  //barril variáveis
 float barrilX=0.2,barrilY=0.0,barrilZ=-0.65;//coordenadas iniciais do barril
-float velX=0.01,velZ=0.1,barrilRotacao=-0.02; 
+float velX=0.015,velZ=0.015,barrilRotacao=-0.02; 
 bool barrilEsquerda=true,barrilDireita=false,barrilBaixo=false;
 
 //A-personagem
@@ -164,7 +166,7 @@ void init(void)
 	/* Activa o z-buffering, de modo a remover as superf?cies escondidas */
 	glEnable(GL_DEPTH_TEST);
 
-    glutTimerFunc(60, timer_callback,60);
+    glutTimerFunc(30, timer_callback,30);
 }
 
 void reshape(int w, int h)
@@ -204,6 +206,9 @@ void keyboard(unsigned char key, int x, int y)
 	{
 	case 27: // codigo ASCII da tecla ESC
 		exit(0); // comando pra finalizacao do programa
+		break;
+	case ' '://tecla espaço do teclado
+		pulo=true;
 		break;
 	}
 }
@@ -711,12 +716,12 @@ void criaCenario() //quantidade de blocos do cenario
 	glColor3f(0.0f, 0.0f, 0.0f);//cor do objeto verde
 	gluQuadricTexture(quad, GLU_TRUE);//textura do quadrado ? ativada
 	glTranslatef(barrilX,barrilY,barrilZ); //posicao final do barril
-	glRotatef(90, barrilRotacao, 0.0f, 0.0f);//rota??o
+	glRotatef(90, barrilRotacao, 0.0f, 0.0f);//rotacao
 	gluSphere(quad, 0.05, 30, 30);//gera a esfera baseado no objeto do quadrado
 	glPopMatrix();
 	if(barrilEsquerda)
 		barrilX-=velX;
-	if(barrilDireita) //Ajustar o boolean quando houver colisão!
+	if(barrilDireita) 
 		barrilX+=velX;
 	if(barrilBaixo)
 		barrilZ+=velZ;
@@ -733,14 +738,25 @@ void criaCenario() //quantidade de blocos do cenario
 	glColor3f(0.0f, 0.0f, 1.0f);
 	glTranslatef(personX, 0.0, personZ);
 	glutSolidSphere(0.07, 30, 30);
-	glPopMatrix();
+	glPopMatrix();	
+	if (pulo){
+		contPulo+=1;
+		if (contPulo<=15)//numero de frames
+			personZ-=0.010;
+		else if(contPulo>15 && contPulo<=30)
+			personZ+=0.010;
+		else{
+			contPulo=0;
+			pulo=false;	
+		}
+	}
 	
 	
 
 
 }
 
-void criaEscada(float x) //Cria um quadril?tero serve p escada e para alguns personagens
+void criaEscada(float x) //Cria um quadrilatero serve p escada e para alguns personagens
 {
 
 	glBegin(GL_QUADS);
@@ -838,7 +854,7 @@ void criaPersonagens()
 	glColor3f(0.2f, 0.0f, 0.0f);
 	glTranslatef( 0.55, 0.0, -0.68);
 	glScalef(0.1, 0.1, 0.1);
-	glRotatef(180, 0.0f, 1.0f, -0.5f);//rota??o
+	glRotatef(180, 0.0f, 1.0f, -0.5f);//rotacao
 	drawModel("../models/dk.obj");
 	glPopMatrix();
 
@@ -847,7 +863,7 @@ void criaPersonagens()
 	glColor3f(0.5f, 0.5f, 0.0f);
 	glTranslatef( 0.23, 0.0, -1.21);
 	glScalef(0.1, 0.1, 0.1);
-	glRotatef(180, 0.0f, 1.0f, -0.5f);//rota??o
+	glRotatef(180, 0.0f, 1.0f, -0.5f);//rotacao
 	drawMode2("../models/leia.obj");
 	glPopMatrix();
 
