@@ -235,7 +235,7 @@ void keyboard_special(int key, int x, int y)
 		flag = 0;
 		// if(personZ < 1)
 		// 	personZ += 0.035;
-		for(int i = 12; i < 22; i ++)
+		for(int i = 0; i < 45; i ++)
 				if(personZ < 1 && blocks[i].colide && colisao(blocks[i].x, blocks[i].y, blocks[i].z, blocks[i].raio) ){
 					flag = 1;
 					printf("figura %d ", i);
@@ -253,7 +253,7 @@ void keyboard_special(int key, int x, int y)
 	case GLUT_KEY_DOWN://seta baixo
 		baixo = true;
 		flag = 0;
-		for(int i = 12; i < 22; i ++)
+		for(int i = 0; i < 45; i ++)
 				if(personZ < 1 && blocks[i].colide && colisao(blocks[i].x, blocks[i].y, blocks[i].z, blocks[i].raio) ){
 					flag = 1;
 					printf("figura %d ", i);
@@ -544,7 +544,7 @@ void criaCenario() //quantidade de blocos do cenario
 			b.x = x;
 			b.y = y;
 			b.z = z;
-			b.raio = raio;
+			b.raio = 0.09/2;
 			if(i == BLOCKS - 1 || i == BLOCKS - 2|| i == BLOCKS - 3) //|| i == BLOCKS - 4 || i == BLOCKS - 5)
 				b.colide = false;
 			else
