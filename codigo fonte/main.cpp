@@ -43,11 +43,11 @@ GLMmodel* pmode2 = NULL;
 // }
 
 bool colisao(float x, float y, float z, float raio){
-	float d = sqrt((- x + personX)  * (- x +  personX) + ( - y + personZ) * (- y + personZ) + (-z + 1) * (-z + 1));
+	float d = sqrt((- x + personX)  * (- x +  personX) + ( -z + personZ) * (-z + personZ) + (-y + 0) * (-y + 0));
 	printf("d = %.2f ", d);
-	printf("s = %.2f\n", 0.25 + raio);
+	printf("s = %.2f\n", 0.07 + raio);
 	
-	if(d <= (0.3 + raio))
+	if(d <= (0.07 + raio))
 		return true;
 	else 
 		return false;
@@ -241,7 +241,7 @@ void keyboard_special(int key, int x, int y)
 					printf("figura %d ", i);
 				}	
 		if(flag == 0)
-			personZ += 0.035;
+			personZ -= 0.035;
 		else
 		{
 			printf("colidiu\n");
@@ -259,7 +259,7 @@ void keyboard_special(int key, int x, int y)
 					printf("figura %d ", i);
 				}	
 		if(flag == 0)
-			personZ -= 0.035;
+			personZ += 0.035;
 		else
 		{
 			printf("colidiu\n");
@@ -642,8 +642,8 @@ void criaCenario() //quantidade de blocos do cenario
 	//personagem
 	glPushMatrix();
 	glColor3f(0.0f, 0.0f, 1.0f);
-	glTranslatef(personX, -0.03, personZ);
-	glutSolidSphere(0.1, 30, 30);
+	glTranslatef(personX, 0.0, personZ);
+	glutSolidSphere(0.07, 30, 30);
 	glPopMatrix();
 
 
