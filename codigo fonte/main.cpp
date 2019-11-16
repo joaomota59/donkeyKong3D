@@ -17,7 +17,7 @@
 //Variaveis Globais usadas para definicao de cores
 float R, G, B;
 bool esquerda = false, direita = false, cima = false, baixo = false; //botoes para mover o personagem
-float personX = 0.85, personZ = 0.83; //coordenadas iniciais do personagem
+float personX = 0.85, personY=0.0,personZ = 0.83,raioPerson=0.07; //coordenadas iniciais do personagem
 float personComp = 50, personAlt = 30; //comprimento e altura do personagem
 std::string MODEL_PATH;
 GLuint elephant;
@@ -25,10 +25,11 @@ float elephantrot;
 char ch = '1';
 GLMmodel* pmodel = NULL;
 GLMmodel* pmode2 = NULL;
+GLMmodel* pmode3 = NULL;
 bool pulo=false;
 int contPulo=0;
  //barril variáveis
-float barrilX=0.2,barrilY=0.0,barrilZ=-0.65;//coordenadas iniciais do barril
+float barrilX=0.2,barrilY=0.0,barrilZ=-0.65,raioBarril=0.05;//coordenadas iniciais do barril
 float velX=0.015,velZ=0.015,barrilRotacao=-0.02; 
 bool barrilEsquerda=true,barrilDireita=false,barrilBaixo=false;
 
@@ -47,28 +48,13 @@ bool barrilEsquerda=true,barrilDireita=false,barrilBaixo=false;
 // 	return true;
 // }
 
-bool colisao(float x, float y, float z, float raio){
-	float d = sqrt((- x + personX)  * (- x +  personX) + ( -z + personZ) * (-z + personZ) + (-y + 0) * (-y + 0));
-	printf("d = %.2f ", d);
-	printf("s = %.2f\n", 0.07 + raio);
-	
-	if(d <= (0.07 + raio))
-		return true;
-	else 
-		return false;
-}
 
-bool colisao_barril(float x, float y, float z, float raio){
-	float d = sqrt((- x + barrilX)  * (- x +  barrilX) + ( -z + barrilZ) * (-z + barrilZ) + (-y + barrilY) * (-y + barrilY));
-	printf("d = %.2f ", d);
-	printf("s = %.2f\n", 0.05 + raio);
+struct Escada{
+	float x;
+	float y;
+	float z;
 	
-	if(d <= (0.22 + raio))
-		return true;
-	else 
-		return false;
-}
-
+};
 struct Bloco //Blocos do cen?rio
 {
 	float x;
@@ -97,6 +83,7 @@ struct Vertex
 //Global
 Bloco blocos[BLOCOS];
 tBloco blocks[BLOCOS];
+Escada escadas[4];
 double rotate_y = 0;
 double rotate_x = 0;
 
@@ -111,12 +98,14 @@ void criaBloco(void);
 void criaCubo(float x);
 void criaCenario(void);
 void DefineIluminacao(void);
-void criaEscada(float x);
+void criaEscada(float R,float G,float B);
 void criaPersonagens(void);
 void drawModel(char *fname);
 void drawMode2(char *fname);
+void drawMode3(char *fname);
 void loadObj(char *fname);
 void timer_callback(int value);
+bool colisao(float x1, float y1, float z1, float raio1,float x2, float y2, float z2, float raio2);
 
 // Funcao Principal do C
 int main(int argc, char** argv)
@@ -215,7 +204,7 @@ void keyboard(unsigned char key, int x, int y)
 
 void timer_callback(int value){
     glutTimerFunc(value, timer_callback, value);
-    if(colisao(barrilX, barrilY, barrilZ, 0.1)){
+    if(colisao(barrilX, barrilY, barrilZ, raioBarril,personX,personY,personZ,raioPerson)){
 		printf("Perdeu dd");
 		exit(0);
 	}
@@ -225,22 +214,18 @@ void timer_callback(int value){
 		barrilBaixo = false;
 	}
 	if(barrilX >= 1){
-		barrilEsquerda = true;
+	barrilEsquerda = true;
 		barrilDireita = false;
 		barrilBaixo = false;
 	}
 	int flag = 0;
-	for(int i = 0; i < 45; i ++)
-		if(blocks[i].colide && colisao_barril(blocks[i].x, blocks[i].y, blocks[i].z, blocks[i].raio) ){
+	for(int i = 0; i < 45; i ++)//verifica quando o barril vai descendo
+		if(blocks[i].colide && colisao(blocks[i].x, blocks[i].y, blocks[i].z, blocks[i].raio,barrilX,barrilY,barrilZ,raioBarril) ){
 			flag = 1;
 			printf("brail figura %d ", i);
 		}	
-	if(flag == 0)
+	if(flag == 0)//entao é pq o barril colidiu c a escada
 		barrilBaixo = true;
-	else
-	{
-		barrilBaixo = false;
-	}
     glutPostRedisplay(); // Manda redesenhar o display em cada frame
 }
 
@@ -287,12 +272,12 @@ void keyboard_special(int key, int x, int y)
 		glutPostRedisplay();
 		break;
 	case GLUT_KEY_UP://seta cima
-		cima = true;
+		if(!pulo){
 		flag = 0;
 		// if(personZ < 1)
 		// 	personZ += 0.035;
 		for(int i = 0; i < 45; i ++)
-				if(personZ < 1 && blocks[i].colide && colisao(blocks[i].x, blocks[i].y, blocks[i].z, blocks[i].raio) ){
+				if(blocks[i].colide && colisao(blocks[i].x, blocks[i].y, blocks[i].z, blocks[i].raio,personX,personY,personZ,raioPerson) ){
 					flag = 1;
 					printf("figura %d ", i);
 				}	
@@ -302,15 +287,15 @@ void keyboard_special(int key, int x, int y)
 		{
 			printf("colidiu\n");
 		}
-		flag = 0;
 		glutPostRedisplay();
 		flag = 0;
+		}
 		break;
 	case GLUT_KEY_DOWN://seta baixo
 		baixo = true;
 		flag = 0;
 		for(int i = 0; i < 45; i ++)
-				if(personZ < 1 && blocks[i].colide && colisao(blocks[i].x, blocks[i].y, blocks[i].z, blocks[i].raio) ){
+				if(blocks[i].colide && colisao(blocks[i].x, blocks[i].y, blocks[i].z, blocks[i].raio,personX,personY,personZ,raioPerson) ){
 					flag = 1;
 					printf("figura %d ", i);
 				}	
@@ -363,7 +348,7 @@ void display(void)
 }
 
 
-void criaCubo(float x, float* coord_x, float* coord_y, float* coord_z, float tx, float ty, float tz, float * raio)
+void criaCubo(float x)
 {
 	int contador = 0;
 	// Desenhas as linhas das "bordas" do cubo
@@ -371,45 +356,15 @@ void criaCubo(float x, float* coord_x, float* coord_y, float* coord_z, float tx,
 	glLineWidth(1.6f);
 	glBegin(GL_LINE_LOOP);	// frontal
 	glVertex3f(x, x, x);
-	*raio = fabs(tx);
-	*coord_x += x + tx;
-	*coord_y += x + ty;
-	*coord_z += x + tz;
-	contador += 1;
 	glVertex3f(-x, x, x);
-	*coord_x +=  - x + tx;
-	*coord_y += x + ty;
-	*coord_z += x + tz; contador += 1;
 	glVertex3f(-x, -x, x);
-	*coord_x +=  - x + tx;
-	*coord_y += - x + ty;
-	*coord_z += x + tz; contador += 1;
 	glVertex3f(x, -x, x);
-	*coord_x +=  x + tx;
-	*coord_y += - x + ty;
-	*coord_z += x + tz; contador += 1;
 	glEnd();
 	glBegin(GL_LINE_LOOP);	//  posterior
 	glVertex3f(x, x, -x);
-	*coord_x +=  x + tx;
-	*coord_y +=  x + ty;
-	*coord_z += -x + tz;
-	contador += 1;
 	glVertex3f(x, -x, -x);
-	*coord_x +=  x + tx;
-	*coord_y += - x + ty;
-	*coord_z += - x + tz;
-	contador += 1;
 	glVertex3f(-x, -x, -x);
-	*coord_x +=  - x + tx;
-	*coord_y += - x + ty;
-	*coord_z +=  - x + tz;
-	contador += 1;
 	glVertex3f(-x, x, -x);
-	*coord_x +=  - x + tx;
-	*coord_y += x + ty;
-	*coord_z += - x + tz;
-	contador += 1;
 	glEnd();
 	glBegin(GL_LINES);	//  laterais
 	glVertex3f(-x, x, -x);
@@ -421,9 +376,6 @@ void criaCubo(float x, float* coord_x, float* coord_y, float* coord_z, float tx,
 	glVertex3f(x, -x, -x);
 	glVertex3f(x, -x, x);
 	glEnd();
-	*coord_x /= contador;
-	*coord_y /= contador;
-	*coord_z /= contador;
 
 	// Desenha as faces do cubo preenchidas
 	// Face frontal
@@ -589,14 +541,15 @@ void criaCenario() //quantidade de blocos do cenario
 				ty = 0.0;
 				tz = 1 - 0.5 * k;
 			}
-			glTranslatef(tx, ty, tz);
+
 			float raio;
-			criaCubo(0.09, &x, &y, &z, tx, ty, tz, &raio);
+			glTranslatef(tx, ty, tz);
+			criaCubo(0.09);
 			tBloco b;
-			b.x = x;
-			b.y = y;
-			b.z = z;
-			b.raio = 0.09/2;
+			b.x = tx;
+			b.y = ty;
+			b.z = tz;
+			b.raio = 0.09+0.03;
 			if(k == 0){
 				b.colide = true;
 			}
@@ -633,48 +586,8 @@ void criaCenario() //quantidade de blocos do cenario
 	}
 	glDisable(GL_TEXTURE_2D);  //desativa a textura dos blocos
 	stbi_image_free(uc);
-	unsigned char *uc2 = stbi_load("../texturas/escada.png", &w, &h, NULL, 0);
-	glGenTextures(1, &t); //gera nomes identificadores de texturas
-	glBindTexture(GL_TEXTURE_2D, t); //Ativa a textura atual
-	//Cria a textura de cada escada
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h,
-				 0, GL_RGB, GL_UNSIGNED_BYTE, uc2);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-
-	glEnable(GL_TEXTURE_2D);//inicia a nova textura
-
-	//fazendo as escadas de cada andar
-	glPushMatrix();//escada 1
-	glTranslatef( -0.9, -0.09, 0.75);
-	glScalef(0.8, 0.0, 1.75);
-	criaEscada(0.09);
-	glPopMatrix();
-	glPushMatrix();//escada 2
-	glTranslatef( 0.8 , -0.09, 0.25);
-	glScalef(0.8, 0.0, 1.75);
-	criaEscada(0.09);
-	glPopMatrix();
-	glPushMatrix();//escada 3
-	glTranslatef( -0.80, -0.09, -0.25);
-	glScalef(0.8, 0.0, 1.75);
-	criaEscada(0.09);
-	glPopMatrix();
-	glPushMatrix();//escada 4
-	glTranslatef( -0.80, -0.09, -0.25);
-	glScalef(0.8, 0.0, 1.75);
-	criaEscada(0.09);
-	glPopMatrix();
-	glPushMatrix();//escada 5
-	glTranslatef( 0.25, -0.09, -0.745);
-	glScalef(0.8, 0.0, 1.75);
-	criaEscada(0.09);
-	glPopMatrix();
-
-	glDisable(GL_TEXTURE_2D);//desativa a textura da escada
-	stbi_image_free(uc2);
+	criaEscada(0.59,0.29,0.0);
 
 	unsigned char *uc3 = stbi_load("../texturas/barril.jpg", &w, &h, NULL, 0);
 	glGenTextures(1, &t); //gera nomes identificadores de texturas
@@ -704,7 +617,7 @@ void criaCenario() //quantidade de blocos do cenario
 		else
 			glTranslatef(0.75 + ((fator - 2) - (fator - 2) * 0.9), -0.74, 0.0); //posicao final do barril
 
-		gluSphere(quad, 0.05, 30, 30);//gera a esfera baseado no objeto do quadrado
+		gluSphere(quad,raioBarril, 30, 30);//gera a esfera baseado no objeto do quadrado
 		//gluCylinder(quad,0.1,0.1,0.4,30,30);//(quadrado,raio_1,raio2,altura,slices,stacks)
 		//glutCylinder nao tem as faces de cima e de baixo.. se usar ele da erro na figura do canto
 		glPopMatrix();
@@ -717,15 +630,17 @@ void criaCenario() //quantidade de blocos do cenario
 	gluQuadricTexture(quad, GLU_TRUE);//textura do quadrado ? ativada
 	glTranslatef(barrilX,barrilY,barrilZ); //posicao final do barril
 	glRotatef(90, barrilRotacao, 0.0f, 0.0f);//rotacao
-	gluSphere(quad, 0.05, 30, 30);//gera a esfera baseado no objeto do quadrado
+	gluSphere(quad, raioBarril, 30, 30);//gera a esfera baseado no objeto do quadrado
 	glPopMatrix();
 	if(barrilEsquerda)
 		barrilX-=velX;
 	if(barrilDireita) 
 		barrilX+=velX;
-	if(barrilBaixo)
+	if(barrilBaixo){
 		barrilZ+=velZ;
-	barrilBaixo = false;		
+		barrilBaixo = false;
+	}
+		
 	barrilRotacao=-barrilRotacao;   //constante em qualquer situação
 	
 	
@@ -736,8 +651,8 @@ void criaCenario() //quantidade de blocos do cenario
 	//personagem
 	glPushMatrix();
 	glColor3f(0.0f, 0.0f, 1.0f);
-	glTranslatef(personX, 0.0, personZ);
-	glutSolidSphere(0.07, 30, 30);
+	glTranslatef(personX, personY, personZ);
+	glutSolidSphere(raioPerson, 30, 30);
 	glPopMatrix();	
 	if (pulo){
 		contPulo+=1;
@@ -756,25 +671,45 @@ void criaCenario() //quantidade de blocos do cenario
 
 }
 
-void criaEscada(float x) //Cria um quadrilatero serve p escada e para alguns personagens
+void criaEscada(float R,float G ,float B) //Cria as escadas do cenário
 {
-
-	glBegin(GL_QUADS);
-	glColor3f(1.0f, 0.0f, 0.0f);
-	glNormal3f(0.0, -1.0, 0.0);
-//	glColor3f(0.0f, 0.0f, 1.0f);
-	glVertex3f(-x, -x, -x);
-	glTexCoord2f(1, 0); //atribui coordenada de textura ao objeto
-//	glColor3f(1.0f, 0.0f, 1.0f);
-	glVertex3f(x, -x, -x);
-	glTexCoord2f(1, 1);
-//	glColor3f(1.0f, 0.0f, 0.0f);
-	glVertex3f(x, -x, x);
-	glTexCoord2f(0, 1);
-//	glColor3f(0.0f, 0.0f, 0.0f);
-	glVertex3f(-x, -x, x);
-	glTexCoord2f(0, 0);
-	glEnd();
+	//cria 5 escadas
+	glPushMatrix();
+	glColor3f(R,G,B);
+	glTranslatef( -0.9, -0.09, 0.75);
+	glScalef(0.1, 0.1, 0.1);
+	glRotatef(180, 0.0f, 1.0f, -0.5f);//rotacao
+	drawMode3("../models/Tritix1.obj");
+	glPopMatrix();
+	glPushMatrix();
+	glColor3f(R,G,B);
+	glTranslatef( 0.8 , -0.09, 0.25);
+	glScalef(0.1, 0.1, 0.1);
+	glRotatef(180, 0.0f, 1.0f, -0.5f);//rotacao
+	drawMode3("../models/Tritix1.obj");
+	glPopMatrix();
+	glPushMatrix();
+	glColor3f(R,G,B);
+	glTranslatef( -0.80, -0.09, -0.25);
+	glScalef(0.1, 0.1, 0.1);
+	glRotatef(180, 0.0f, 1.0f, -0.5f);//rotacao
+	drawMode3("../models/Tritix1.obj");
+	glPopMatrix();
+	glPushMatrix();
+	glColor3f(R,G,B);
+	glTranslatef( -0.80, -0.09, -0.25);
+	glScalef(0.1, 0.1, 0.1);
+	glRotatef(180, 0.0f, 1.0f, -0.5f);//rotacao
+	drawMode3("../models/Tritix1.obj");
+	glPopMatrix();
+	glPushMatrix();
+	glColor3f(R,G,B);
+	glTranslatef( 0.25, -0.09, -0.745);
+	glScalef(0.1, 0.1, 0.1);
+	glRotatef(180, 0.0f, 1.0f, -0.5f);//rotacao
+	drawMode3("../models/Tritix1.obj");
+	glPopMatrix();
+	glPopMatrix();
 
 }
 
@@ -846,7 +781,22 @@ void drawMode2(char *fname)
 		glmDraw(pmode2, GLM_SMOOTH | GLM_FLAT);
 }
 
-void criaPersonagens()
+void drawMode3(char *fname)
+{
+	if (!pmode3)
+	{
+		pmode3 = glmReadOBJ(fname);
+		if (!pmode3)
+			exit(0);
+		glmUnitize(pmode3);
+		glmFacetNormals(pmode3);
+		glmVertexNormals(pmode3, 90.0);
+		glmDraw(pmode3, GLM_SMOOTH | GLM_FLAT);
+	}
+		glmDraw(pmode3, GLM_SMOOTH | GLM_FLAT);
+}
+
+void criaPersonagens()//personagens(macaco e princesa) e as escadas!
 {
 
 	//cria macaco
@@ -857,7 +807,7 @@ void criaPersonagens()
 	glRotatef(180, 0.0f, 1.0f, -0.5f);//rotacao
 	drawModel("../models/dk.obj");
 	glPopMatrix();
-
+	
 	//cria princesa
 	glPushMatrix();
 	glColor3f(0.5f, 0.5f, 0.0f);
@@ -866,5 +816,17 @@ void criaPersonagens()
 	glRotatef(180, 0.0f, 1.0f, -0.5f);//rotacao
 	drawMode2("../models/leia.obj");
 	glPopMatrix();
+	
 
+}
+//x1,y1,z1,raio 1 coordenadas do 1 elemento e x2,y2,z2,raio 2 coordenadas do 2 elemento 
+bool colisao(float x1, float y1, float z1, float raio1,float x2, float y2, float z2, float raio2){
+	float d = sqrt((- x1 + x2)  * (- x1 +  x2) + (-y1 + y2) * (-y1 + y2)+  ( -z1 + z2) * (-z1 + z2));
+	//printf("d = %.2f ", d);
+//	printf("s = %.2f\n", 0.07 + raio);
+	
+	if(d <= (raio1+raio2))
+		return true;
+	else 
+		return false;
 }
