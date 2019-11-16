@@ -56,6 +56,17 @@ bool colisao(float x, float y, float z, float raio){
 		return false;
 }
 
+bool colisao_barril(float x, float y, float z, float raio){
+	float d = sqrt((- x + barrilX)  * (- x +  barrilX) + ( -z + barrilZ) * (-z + barrilZ) + (-y + barrilY) * (-y + barrilY));
+	printf("d = %.2f ", d);
+	printf("s = %.2f\n", 0.05 + raio);
+	
+	if(d <= (0.22 + raio))
+		return true;
+	else 
+		return false;
+}
+
 struct Bloco //Blocos do cen?rio
 {
 	float x;
@@ -199,6 +210,32 @@ void keyboard(unsigned char key, int x, int y)
 
 void timer_callback(int value){
     glutTimerFunc(value, timer_callback, value);
+    if(colisao(barrilX, barrilY, barrilZ, 0.1)){
+		printf("Perdeu dd");
+		exit(0);
+	}
+    if(barrilX <= -1){
+		barrilEsquerda = false;
+		barrilDireita = true;
+		barrilBaixo = false;
+	}
+	if(barrilX >= 1){
+		barrilEsquerda = true;
+		barrilDireita = false;
+		barrilBaixo = false;
+	}
+	int flag = 0;
+	for(int i = 0; i < 45; i ++)
+		if(blocks[i].colide && colisao_barril(blocks[i].x, blocks[i].y, blocks[i].z, blocks[i].raio) ){
+			flag = 1;
+			printf("brail figura %d ", i);
+		}	
+	if(flag == 0)
+		barrilBaixo = true;
+	else
+	{
+		barrilBaixo = false;
+	}
     glutPostRedisplay(); // Manda redesenhar o display em cada frame
 }
 
@@ -555,10 +592,33 @@ void criaCenario() //quantidade de blocos do cenario
 			b.y = y;
 			b.z = z;
 			b.raio = 0.09/2;
-			if(i == BLOCKS - 1 || i == BLOCKS - 2|| i == BLOCKS - 3) //|| i == BLOCKS - 4 || i == BLOCKS - 5)
-				b.colide = false;
-			else
+			if(k == 0){
 				b.colide = true;
+			}
+			if(k == 1){
+				if(i == BLOCKS - 1 || i == BLOCKS - 2)
+					b.colide = false;
+				else
+					b.colide = true;
+			}
+			if(k == 2){
+				if(i < 2)
+					b.colide = false;
+				else
+					b.colide = true;
+			}
+			
+			if(k == 3){
+				if(i == BLOCKS - 1 || i == BLOCKS - 2)
+					b.colide = false;
+				else
+					b.colide = true;
+			}
+			
+			// if(i == BLOCKS - 1 || i == BLOCKS - 2|| i == BLOCKS - 3) //|| i == BLOCKS - 4 || i == BLOCKS - 5)
+			// 	b.colide = false;
+			// else
+			// 	b.colide = true;
 			// printf("figura %d. x = %.2f, y = %.2f, z = %.2f\n", auxiliar, x, y, z);
 			blocks[auxiliar] = b;
 			c = c - 0.18;//distancia entre cada bloco
@@ -656,11 +716,11 @@ void criaCenario() //quantidade de blocos do cenario
 	glPopMatrix();
 	if(barrilEsquerda)
 		barrilX-=velX;
-	else if(barrilDireita) //Ajustar o boolean quando houver colisão!
+	if(barrilDireita) //Ajustar o boolean quando houver colisão!
 		barrilX+=velX;
-	else if(barrilBaixo)
-		barrilZ-=velZ;
-	
+	if(barrilBaixo)
+		barrilZ+=velZ;
+	barrilBaixo = false;		
 	barrilRotacao=-barrilRotacao;   //constante em qualquer situação
 	
 	
