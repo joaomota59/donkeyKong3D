@@ -25,7 +25,10 @@ float elephantrot;
 char ch = '1';
 GLMmodel* pmodel = NULL;
 GLMmodel* pmode2 = NULL;
-
+ //barril variáveis
+float barrilX=0.2,barrilY=0.0,barrilZ=-0.65;//coordenadas iniciais do barril
+float velX=0.01,velZ=0.1,barrilRotacao=-0.02; 
+bool barrilEsquerda=true,barrilDireita=false,barrilBaixo=false;
 
 //A-personagem
 //B-algo que vai colidir com o personagem
@@ -98,7 +101,9 @@ void DefineIluminacao(void);
 void criaEscada(float x);
 void criaPersonagens(void);
 void drawModel(char *fname);
+void drawMode2(char *fname);
 void loadObj(char *fname);
+void timer_callback(int value);
 
 // Funcao Principal do C
 int main(int argc, char** argv)
@@ -114,12 +119,11 @@ int main(int argc, char** argv)
 	// Registra a fun??o callback que ser? chamada a cada intervalo de tempo
 	glutReshapeFunc(reshape); //funcao callback para redesenhar a tela
 	glutDisplayFunc(display); //funcao callback de desenho
-	glTranslatef(1, 1, 1);
-	loadObj("../models/dk.obj");//replace porsche.obj with radar.obj or any other .obj to display it
-
 	glutKeyboardFunc(keyboard); //funcao callback do teclado
 	glutSpecialFunc(keyboard_special);	//funcao callback do teclado especial
+	   
 	glutMainLoop(); // executa o loop do OpenGL
+	
 	return 0; // retorna 0 para o tipo inteiro da funcao main();
 }
 
@@ -149,10 +153,12 @@ void init(void)
 	/* Activa o z-buffering, de modo a remover as superf?cies escondidas */
 	glEnable(GL_DEPTH_TEST);
 
+    glutTimerFunc(60, timer_callback,60);
 }
 
 void reshape(int w, int h)
 {
+	
 	// Reinicializa o sistema de coordenadas
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -191,10 +197,18 @@ void keyboard(unsigned char key, int x, int y)
 	}
 }
 
+void timer_callback(int value){
+    glutTimerFunc(value, timer_callback, value);
+    glutPostRedisplay(); // Manda redesenhar o display em cada frame
+}
+
+
+
 //Funcao para controlar as teclas especiais (2 Byte) do teclado
 int flag = 0;
 void keyboard_special(int key, int x, int y)
 {
+	
 	switch(key)
 	{
 		//  Rotacao 5 graus esquerda
@@ -291,8 +305,9 @@ void display(void)
 	// Especifica sistema de coordenadas de proje??o
 	glMatrixMode(GL_PROJECTION);
 
-
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Limpar a tela e o Z-buffer
+	/* Apaga o video e o depth buffer, e reinicia a matriz */
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
+	glLoadIdentity();
 	//glColor3ub(0, 0, 0);
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glLoadIdentity();//Limpa o Buffer de Cores;
@@ -300,14 +315,9 @@ void display(void)
 	glRotatef( rotate_y, 0.0, 1.0, 0.0 );
 	DefineIluminacao();
 	gluLookAt(0.0f, 0.1f, 0.1f, 0.f, 0.f, 0.f, 0.f, 1.0f, 0.f);//visao da camera
-
 	criaCenario();
 	criaPersonagens();
-
-
-
 	glutSwapBuffers();
-	glEnable(GL_LIGHTING);
 }
 
 
@@ -618,7 +628,7 @@ void criaCenario() //quantidade de blocos do cenario
 	GLUquadric *quad = gluNewQuadric(); //cria um quadrado
 	gluQuadricNormals(quad, GLU_FLAT); //FLAT significa uma normal para cada face do quadrado
 	gluQuadricOrientation(quad, GLU_INSIDE); //vetor da normal apontando p dentro
-	for(int barril = 0, fator = 0; barril < 4; barril++, fator++)
+	for(int barril = 0, fator = 0; barril < 4; barril++, fator++)   //barril proximo ao macaco
 	{
 		glPushMatrix();
 		glColor3f(0.0f, 0.0f, 0.0f);//cor do objeto verde
@@ -635,7 +645,26 @@ void criaCenario() //quantidade de blocos do cenario
 		glPopMatrix();
 
 	}
-
+	
+		
+	glPushMatrix();//barril em movimento	
+	glColor3f(0.0f, 0.0f, 0.0f);//cor do objeto verde
+	gluQuadricTexture(quad, GLU_TRUE);//textura do quadrado ? ativada
+	glTranslatef(barrilX,barrilY,barrilZ); //posicao final do barril
+	glRotatef(90, barrilRotacao, 0.0f, 0.0f);//rota??o
+	gluSphere(quad, 0.05, 30, 30);//gera a esfera baseado no objeto do quadrado
+	glPopMatrix();
+	if(barrilEsquerda)
+		barrilX-=velX;
+	else if(barrilDireita) //Ajustar o boolean quando houver colisão!
+		barrilX+=velX;
+	else if(barrilBaixo)
+		barrilZ-=velZ;
+	
+	barrilRotacao=-barrilRotacao;   //constante em qualquer situação
+	
+	
+	
 	glDisable(GL_TEXTURE_2D);//desativa a textura do barril
 	stbi_image_free(uc3);
 
@@ -645,6 +674,8 @@ void criaCenario() //quantidade de blocos do cenario
 	glTranslatef(personX, 0.0, personZ);
 	glutSolidSphere(0.07, 30, 30);
 	glPopMatrix();
+	
+	
 
 
 }
@@ -670,50 +701,6 @@ void criaEscada(float x) //Cria um quadril?tero serve p escada e para alguns per
 	glEnd();
 
 }
-
-
-
-void criaBloco()//bloco do projeto 2D
-{
-
-	int x = 15, y = 10; //coordenadas iniciais dos blocos
-	for(int n = 0; n < BLOCOS; n++)
-	{
-		if(x > 512 - 30) //quando chegar no canto direito
-		{
-			x = 15;
-			y += 63;
-		}
-		blocos[n].x = x;
-		blocos[n].y = y;
-		blocos[n].comp = 20;
-		blocos[n].alt = 10;
-		blocos[n].colide = true;
-		x += blocos[n].comp;
-	}
-	for(int n = 0; n < BLOCOS; n++)
-	{
-		glLineWidth(5);//espessura das linhas
-		glBegin(GL_LINES);
-		glColor3f(1, 0, 0);
-		glVertex2f(blocos[n].x, blocos[n].y); //V?rtice inferior esquerdo
-		glVertex2f(blocos[n].x + blocos[n].comp, blocos[n].y); //V?rtice inferior direito
-		glVertex2f(blocos[n].x + blocos[n].comp, blocos[n].y + blocos[n].alt); //V?rtice superior direito
-		glVertex2f(blocos[n].x, blocos[n].y + blocos[n].alt); //V?rtice superior esquerdo
-		glEnd();
-		glLineWidth(4);//espessura das linhas
-		glBegin(GL_LINES);//linhas cruzadas
-		glVertex2f(blocos[n].x, blocos[n].y); //V?rtice inferior esquerdo
-		glVertex2f((int)((blocos[n].x + blocos[n].comp + blocos[n].x) / 2), (int)((blocos[n].y + blocos[n].alt + blocos[n].y + blocos[n].alt) / 2)); //V?rtice superior (fica no meio)
-		glVertex2f((int)((blocos[n].x + blocos[n].comp + blocos[n].x) / 2), (int)((blocos[n].y + blocos[n].alt + blocos[n].y + blocos[n].alt) / 2)); //V?rtice superior (fica no meio)
-		glVertex2f(blocos[n].x + blocos[n].comp, blocos[n].y); //V?rtice inferior direito
-		glEnd();
-	}
-
-}
-
-
-
 
 
 void loadObj(char *fname)
