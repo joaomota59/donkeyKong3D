@@ -12,6 +12,7 @@
 #include "stb_image.h"
 #include "glm.h"
 #define QUANT_TEX 1
+#define quantEscadas 4
 #define BLOCOS 100 //quantidade de blocos da fase(por onde o personagem vai andar)
 #include <string>
 //Variaveis Globais usadas para definicao de cores
@@ -19,9 +20,6 @@ float R, G, B;
 bool esquerda = false, direita = false, cima = false, baixo = false; //botoes para mover o personagem
 float personX = 0.85, personY=0.0,personZ = 0.83,raioPerson=0.07; //coordenadas iniciais do personagem
 float personComp = 50, personAlt = 30; //comprimento e altura do personagem
-std::string MODEL_PATH;
-GLuint elephant;
-float elephantrot;
 char ch = '1';
 GLMmodel* pmodel = NULL;
 GLMmodel* pmode2 = NULL;
@@ -33,35 +31,33 @@ float barrilX=0.2,barrilY=0.0,barrilZ=-0.65,raioBarril=0.05;//coordenadas inicia
 float velX=0.015,velZ=0.015,barrilRotacao=-0.02; 
 bool barrilEsquerda=true,barrilDireita=false,barrilBaixo=false;
 
-//A-personagem
-//B-algo que vai colidir com o personagem
-// bool colisao(float aX, float aY, float aComp, float aAlt, float bX, float bY, float bComp, float bAlt)
-// {
-// 	if(aY + aAlt < bY)
-// 		return false;
-// 	else if(aY > bY + bAlt)
-// 		return false;
-// 	else if(aX + aComp < bX)
-// 		return false;
-// 	else if(aX > bX + bComp)
-// 		return false;
-// 	return true;
-// }
+
+
+// Declaracoes forward das funcoes utilizadas
+void init(void);
+void reshape(int w, int h);
+void keyboard(unsigned char key, int x, int y);
+void keyboard_special(int key, int x, int y);
+void display(void);
+void criaBloco(void);
+void criaCubo(float x);
+void criaCenario(void);
+void DefineIluminacao(void);
+void criaEscada(float R,float G,float B);
+void criaPersonagens(void);
+void drawModel(char *fname);
+void drawMode2(char *fname);
+void drawMode3(char *fname);
+void timer_callback(int value);
+bool colisao(float x1, float y1, float z1, float raio1,float x2, float y2, float z2, float raio2);
 
 
 struct Escada{
 	float x;
 	float y;
 	float z;
+	float raio;
 	
-};
-struct Bloco //Blocos do cen?rio
-{
-	float x;
-	float y;
-	float comp;
-	float alt;
-	bool colide;
 };
 
 typedef struct BlocoTeste
@@ -81,31 +77,10 @@ struct Vertex
 };
 
 //Global
-Bloco blocos[BLOCOS];
 tBloco blocks[BLOCOS];
-Escada escadas[4];
+Escada escadas[quantEscadas];
 double rotate_y = 0;
 double rotate_x = 0;
-
-
-// Declaracoes forward das funcoes utilizadas
-void init(void);
-void reshape(int w, int h);
-void keyboard(unsigned char key, int x, int y);
-void keyboard_special(int key, int x, int y);
-void display(void);
-void criaBloco(void);
-void criaCubo(float x);
-void criaCenario(void);
-void DefineIluminacao(void);
-void criaEscada(float R,float G,float B);
-void criaPersonagens(void);
-void drawModel(char *fname);
-void drawMode2(char *fname);
-void drawMode3(char *fname);
-void loadObj(char *fname);
-void timer_callback(int value);
-bool colisao(float x1, float y1, float z1, float raio1,float x2, float y2, float z2, float raio2);
 
 // Funcao Principal do C
 int main(int argc, char** argv)
@@ -128,6 +103,8 @@ int main(int argc, char** argv)
 	
 	return 0; // retorna 0 para o tipo inteiro da funcao main();
 }
+
+
 
 
 // Funcao com alguns comandos para a inicializacao do OpenGL;
@@ -224,7 +201,7 @@ void timer_callback(int value){
 			flag = 1;
 			printf("brail figura %d ", i);
 		}	
-	if(flag == 0)//entao é pq o barril colidiu c a escada
+	if(flag == 0)//entao é pq o barril colidiu c o bloco proximo a escada
 		barrilBaixo = true;
     glutPostRedisplay(); // Manda redesenhar o display em cada frame
 }
@@ -273,43 +250,22 @@ void keyboard_special(int key, int x, int y)
 		break;
 	case GLUT_KEY_UP://seta cima
 		if(!pulo){
-		flag = 0;
-		// if(personZ < 1)
-		// 	personZ += 0.035;
-		for(int i = 0; i < 45; i ++)
-				if(blocks[i].colide && colisao(blocks[i].x, blocks[i].y, blocks[i].z, blocks[i].raio,personX,personY,personZ,raioPerson) ){
-					flag = 1;
-					printf("figura %d ", i);
-				}	
-		if(flag == 0)
-			personZ -= 0.035;
-		else
-		{
-			printf("colidiu\n");
-		}
+			for(int i=0;i<quantEscadas;i++){//verifica se há colisão com as escadas
+				if (colisao(escadas[i].x,escadas[i].y,escadas[i].z,escadas[i].raio,personX,personY,personZ,raioPerson))
+				   personZ -= 0.035;	
+			}	
 		glutPostRedisplay();
-		flag = 0;
 		}
 		break;
 	case GLUT_KEY_DOWN://seta baixo
-		baixo = true;
-		flag = 0;
-		for(int i = 0; i < 45; i ++)
-				if(blocks[i].colide && colisao(blocks[i].x, blocks[i].y, blocks[i].z, blocks[i].raio,personX,personY,personZ,raioPerson) ){
-					flag = 1;
-					printf("figura %d ", i);
-				}	
-		if(flag == 0)
-			personZ += 0.035;
-		else
-		{
-			printf("colidiu\n");
-		}
-		flag = 0;
+		for(int i=0;i<quantEscadas;i++){//verifica se há colisão com as escadas
+				if (colisao(escadas[i].x,escadas[i].y,escadas[i].z,escadas[i].raio,personX,personY,personZ,raioPerson))
+				   personZ += 0.035;	
+			}
 		glutPostRedisplay();
-		flag = 0;
 		break;
 	default:
+		glutPostRedisplay();
 		break;
 
 	}
@@ -666,88 +622,65 @@ void criaCenario() //quantidade de blocos do cenario
 		}
 	}
 	
-	
-
-
 }
 
 void criaEscada(float R,float G ,float B) //Cria as escadas do cenário
 {
-	//cria 5 escadas
+	Escada e;
+
+	//cria 4 escadas
 	glPushMatrix();
 	glColor3f(R,G,B);
-	glTranslatef( -0.9, -0.09, 0.75);
-	glScalef(0.1, 0.1, 0.1);
-	glRotatef(180, 0.0f, 1.0f, -0.5f);//rotacao
+	glTranslatef( -0.9, -0.09, 0.66);
+	e.x=-0.9;
+	e.y=-0.09;
+	e.z=0.66;
+	e.raio=0.25;
+	escadas[0] = e;
+	glScalef(0.1, 0.1, 0.25);
+	glRotatef(180, 0.0f, 1.0f, -1.2f);//rotacao
 	drawMode3("../models/Tritix1.obj");
 	glPopMatrix();
 	glPushMatrix();
 	glColor3f(R,G,B);
-	glTranslatef( 0.8 , -0.09, 0.25);
-	glScalef(0.1, 0.1, 0.1);
-	glRotatef(180, 0.0f, 1.0f, -0.5f);//rotacao
+	glTranslatef( 0.80 , -0.09, 0.16);
+	e.x=0.80;
+	e.y=-0.09;
+	e.z=0.16;
+	e.raio=0.25;
+	escadas[1] = e;
+	glScalef(0.1, 0.1, 0.25);
+	glRotatef(180, 0.0f, 1.0f, -1.2f);//rotacao
 	drawMode3("../models/Tritix1.obj");
 	glPopMatrix();
 	glPushMatrix();
 	glColor3f(R,G,B);
-	glTranslatef( -0.80, -0.09, -0.25);
-	glScalef(0.1, 0.1, 0.1);
-	glRotatef(180, 0.0f, 1.0f, -0.5f);//rotacao
+	glTranslatef( -0.80, -0.1, -0.33);
+	e.x=-0.80;
+	e.y=-0.1;
+	e.z=-0.33;
+	e.raio=0.25;
+	escadas[2] = e;
+	glScalef(0.1, 0.1, 0.26);
+	glRotatef(180, 0.0f, 1.0f, -1.2f);//rotacao
 	drawMode3("../models/Tritix1.obj");
 	glPopMatrix();
 	glPushMatrix();
 	glColor3f(R,G,B);
-	glTranslatef( -0.80, -0.09, -0.25);
-	glScalef(0.1, 0.1, 0.1);
-	glRotatef(180, 0.0f, 1.0f, -0.5f);//rotacao
-	drawMode3("../models/Tritix1.obj");
-	glPopMatrix();
-	glPushMatrix();
-	glColor3f(R,G,B);
-	glTranslatef( 0.25, -0.09, -0.745);
-	glScalef(0.1, 0.1, 0.1);
-	glRotatef(180, 0.0f, 1.0f, -0.5f);//rotacao
+	glTranslatef( 0.25, -0.09, -0.855);
+	e.x=0.25;
+	e.y=-0.09;
+	e.z=-0.855;
+	e.raio=0.25;
+	escadas[3] = e;
+	glScalef(0.1, 0.1, 0.25);
+	glRotatef(180, 0.0f, 1.0f, -1.2f);//rotacao
 	drawMode3("../models/Tritix1.obj");
 	glPopMatrix();
 	glPopMatrix();
 
 }
 
-
-void loadObj(char *fname)
-{
-
-	FILE *fp;
-	int read;
-	GLfloat x, y, z;
-	char ch;
-	elephant = glGenLists(1);
-	fp = fopen(fname, "r");
-	if (!fp)
-	{
-		printf("can't open file %s\n", fname);
-		exit(1);
-	}
-	glPointSize(2.0);
-	glNewList(elephant, GL_COMPILE);
-	{
-		glPushMatrix();
-//	   	glTranslatef(0.0, -18, 0.0);
-		glBegin(GL_POINTS);
-		while(!(feof(fp)))
-		{
-			read = fscanf(fp, "%c %f %f %f", &ch, &x, &y, &z);
-			if(read == 4 && ch == 'v')
-			{
-				glVertex3f(x, y, z);
-			}
-		}
-		glEnd();
-	}
-	glPopMatrix();
-	glEndList();
-	fclose(fp);
-}
 void drawModel(char *fname)
 {
 
