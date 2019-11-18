@@ -241,14 +241,14 @@ void keyboard_special(int key, int x, int y)
 		break;
 	case GLUT_KEY_LEFT://seta esquerda
 		esquerda = true;
-		if(cima)
+		if(cima || baixo)
 			break;
 		if(personX > -1)
 			personX -= 0.035;
 		glutPostRedisplay();
 		break;
 	case GLUT_KEY_RIGHT://seta direita
-		if(cima)
+		if(cima || baixo)
 			break;
 		direita = true;
 		//if(personX < 1)
@@ -262,6 +262,7 @@ void keyboard_special(int key, int x, int y)
 				if (colisaoEP(escadas[i].x,escadas[i].y,escadas[i].z,escadas[i].altura,escadas[i].largura,escadas[i].profundidade,personX,personY,personZ,raioPerson)){
    	   	   	   	   personZ -= 0.035;
    	   	   	   	   cima=true;
+   	   	   	   	   baixo=false;
    	   	   	   	   flag1=1;
    	   	   	   	   break;
 	  	        }	
@@ -274,19 +275,22 @@ void keyboard_special(int key, int x, int y)
 		
 
 	case GLUT_KEY_DOWN://seta baixo
-			for(int i=0;i<quantEscadas;i++){//verifica se há colisão com as escadas			
+		/*	for(int i=0;i<quantEscadas;i++){//verifica se há colisão com as escadas			
 			if(colisaoEP(escadas[i].x,escadas[i].y,escadas[i].z,escadas[i].altura,escadas[i].largura,escadas[i].profundidade,personX,personY,personZ,raioPerson)){
 				personZ += 0.035;
 				break;	
 			}
-			}
+			}*/
 			for(int i=0;i<45;i++){
 				if(blocks[i].colide && colisao(blocks[i].x, blocks[i].y, blocks[i].z, blocks[i].raio,personX,personY,personZ,raioPerson)){
 				   cima=false;
+				   baixo=false;
 				   }
-				   	if(!blocks[i].colide && colisao(blocks[i].x, blocks[i].y, blocks[i].z, blocks[i].raio,personX,personY,personZ,raioPerson)){
+				   	if(!blocks[i].colide && colisao(blocks[i].x, blocks[i].y, blocks[i].z, blocks[i].raio,personX,personY,personZ,raioPerson+0.12)){
 			
 				   				   personZ += 0.035;
+				   				   baixo=true;
+				   				   cima=false;
 				   				    }
 				}
 
