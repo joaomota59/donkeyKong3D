@@ -21,6 +21,7 @@ bool esquerda = false, direita = false, cima = false, baixo = false; //botoes pa
 float personX = 0.85, personY=0.0,personZ = 0.83,raioPerson=0.07; //coordenadas iniciais do personagem
 float personComp = 50, personAlt = 30; //comprimento e altura do personagem
 char ch = '1';
+int flagColisaoEP=0;
 GLMmodel* pmodel = NULL;
 GLMmodel* pmode2 = NULL;
 GLMmodel* pmode3 = NULL;
@@ -49,14 +50,17 @@ void drawModel(char *fname);
 void drawMode2(char *fname);
 void drawMode3(char *fname);
 void timer_callback(int value);
-bool colisao(float x1, float y1, float z1, float raio1,float x2, float y2, float z2, float raio2);
+bool colisao(float x1, float y1, float z1, float raio1,float x2, float y2, float z2, float raio2);//colisao esfera esfera
+bool colisaoEP(float x1,float y1 ,float z1,float altura,float largura,float profundidade,float x2,float y2,float z2,float raio2);//colisao esfera e paralelepipedo
 
 
 struct Escada{
 	float x;
 	float y;
 	float z;
-	float raio;
+	float altura;
+	float largura;
+	float profundidade;
 	
 };
 
@@ -122,7 +126,6 @@ void init(void)
 	glEnable(GL_LIGHT0);
 	// Habilita o depth-buffering
 	glEnable(GL_DEPTH_TEST);
-
 	glEnable(GL_BLEND);
 
 
@@ -209,7 +212,7 @@ void timer_callback(int value){
 
 
 //Funcao para controlar as teclas especiais (2 Byte) do teclado
-int flag = 0;
+int flag1=0;
 void keyboard_special(int key, int x, int y)
 {
 	
@@ -238,30 +241,55 @@ void keyboard_special(int key, int x, int y)
 		break;
 	case GLUT_KEY_LEFT://seta esquerda
 		esquerda = true;
+		if(cima)
+			break;
 		if(personX > -1)
 			personX -= 0.035;
 		glutPostRedisplay();
 		break;
 	case GLUT_KEY_RIGHT://seta direita
+		if(cima)
+			break;
 		direita = true;
 		//if(personX < 1)
 			personX += 0.035;
 		glutPostRedisplay();
 		break;
 	case GLUT_KEY_UP://seta cima
+		flag1=0;
 		if(!pulo){
-			for(int i=0;i<quantEscadas;i++){//verifica se há colisão com as escadas
-				if (colisao(escadas[i].x,escadas[i].y,escadas[i].z,escadas[i].raio,personX,personY,personZ,raioPerson))
-				   personZ -= 0.035;	
-			}	
-		glutPostRedisplay();
-		}
-		break;
-	case GLUT_KEY_DOWN://seta baixo
-		for(int i=0;i<quantEscadas;i++){//verifica se há colisão com as escadas
-				if (colisao(escadas[i].x,escadas[i].y,escadas[i].z,escadas[i].raio,personX,personY,personZ,raioPerson))
-				   personZ += 0.035;	
+			for(int i=0;i<quantEscadas;i++){//verifica se há colisão com a escada e personagem
+				if (colisaoEP(escadas[i].x,escadas[i].y,escadas[i].z,escadas[i].altura,escadas[i].largura,escadas[i].profundidade,personX,personY,personZ,raioPerson)){
+   	   	   	   	   personZ -= 0.035;
+   	   	   	   	   cima=true;
+   	   	   	   	   flag1=1;
+   	   	   	   	   break;
+	  	        }	
 			}
+		if(flag1==0)//quando não colidir mais com a escada 
+			cima=false;
+		}
+		glutPostRedisplay();
+			break;
+		
+
+	case GLUT_KEY_DOWN://seta baixo
+			for(int i=0;i<quantEscadas;i++){//verifica se há colisão com as escadas			
+			if(colisaoEP(escadas[i].x,escadas[i].y,escadas[i].z,escadas[i].altura,escadas[i].largura,escadas[i].profundidade,personX,personY,personZ,raioPerson)){
+				personZ += 0.035;
+				break;	
+			}
+			}
+			for(int i=0;i<45;i++){
+				if(blocks[i].colide && colisao(blocks[i].x, blocks[i].y, blocks[i].z, blocks[i].raio,personX,personY,personZ,raioPerson)){
+				   cima=false;
+				   }
+				   	if(!blocks[i].colide && colisao(blocks[i].x, blocks[i].y, blocks[i].z, blocks[i].raio,personX,personY,personZ,raioPerson)){
+			
+				   				   personZ += 0.035;
+				   				    }
+				}
+
 		glutPostRedisplay();
 		break;
 	default:
@@ -300,6 +328,7 @@ void display(void)
 	gluLookAt(0.0f, 0.1f, 0.1f, 0.f, 0.f, 0.f, 0.f, 1.0f, 0.f);//visao da camera
 	criaCenario();
 	criaPersonagens();
+	glFlush();
 	glutSwapBuffers();
 }
 
@@ -598,9 +627,7 @@ void criaCenario() //quantidade de blocos do cenario
 	}
 		
 	barrilRotacao=-barrilRotacao;   //constante em qualquer situação
-	
-	
-	
+		
 	glDisable(GL_TEXTURE_2D);//desativa a textura do barril
 	stbi_image_free(uc3);
 
@@ -635,7 +662,9 @@ void criaEscada(float R,float G ,float B) //Cria as escadas do cenário
 	e.x=-0.9;
 	e.y=-0.09;
 	e.z=0.66;
-	e.raio=0.25;
+	e.altura=0.5;
+	e.largura= 0.06;
+	e.profundidade= 0.08;
 	escadas[0] = e;
 	glScalef(0.1, 0.1, 0.25);
 	glRotatef(180, 0.0f, 1.0f, -1.2f);//rotacao
@@ -647,7 +676,9 @@ void criaEscada(float R,float G ,float B) //Cria as escadas do cenário
 	e.x=0.80;
 	e.y=-0.09;
 	e.z=0.16;
-	e.raio=0.25;
+	e.altura=0.48;
+	e.largura= 0.06;
+	e.profundidade= 0.08;
 	escadas[1] = e;
 	glScalef(0.1, 0.1, 0.25);
 	glRotatef(180, 0.0f, 1.0f, -1.2f);//rotacao
@@ -659,7 +690,9 @@ void criaEscada(float R,float G ,float B) //Cria as escadas do cenário
 	e.x=-0.80;
 	e.y=-0.1;
 	e.z=-0.33;
-	e.raio=0.25;
+	e.altura=0.5101;
+	e.largura= 0.06;
+	e.profundidade= 0.08;
 	escadas[2] = e;
 	glScalef(0.1, 0.1, 0.26);
 	glRotatef(180, 0.0f, 1.0f, -1.2f);//rotacao
@@ -670,8 +703,10 @@ void criaEscada(float R,float G ,float B) //Cria as escadas do cenário
 	glTranslatef( 0.25, -0.09, -0.855);
 	e.x=0.25;
 	e.y=-0.09;
-	e.z=-0.855;
-	e.raio=0.25;
+	e.z=-0.855;	
+	e.altura=0.5;
+	e.largura= 0.06;
+	e.profundidade= 0.08;
 	escadas[3] = e;
 	glScalef(0.1, 0.1, 0.25);
 	glRotatef(180, 0.0f, 1.0f, -1.2f);//rotacao
@@ -762,4 +797,24 @@ bool colisao(float x1, float y1, float z1, float raio1,float x2, float y2, float
 		return true;
 	else 
 		return false;
+}
+
+bool colisaoEP(float x1,float y1 ,float z1,float altura,float largura,float profundidade,float x2,float y2,float z2,float raio2){
+    double sphereXDistance = fabs(x2 - x1);
+    double sphereYDistance = fabs(y2 - y1);//profundidade no caso do jogo
+    double sphereZDistance = fabs(z2 - z1);
+
+    if (sphereXDistance > (largura/2 + raio2)) { return false; }
+    if (sphereYDistance > (profundidade/2 + raio2)) { return false; }
+    if (sphereZDistance > (altura/2 + raio2)) { return false; }
+
+    if (sphereXDistance <= (largura/2)) { return true; } 
+    if (sphereYDistance <= (profundidade/2)) { return true; }
+    if (sphereZDistance <= (altura/2)) { return true; }
+
+   double cornerDistance_sq = ((sphereXDistance - largura/2) * (sphereXDistance - largura/2)) +
+                         ((sphereYDistance - profundidade/2) * (sphereYDistance - profundidade/2) +
+                         ((sphereZDistance - altura/2) * (sphereZDistance - altura/2)));
+
+    return (cornerDistance_sq <= (raio2 * raio2));	   
 }
