@@ -3,7 +3,8 @@
 //  Autor: C.DANIEL && J.LUCAS
 //*********************************************************************
 
-// Bibliotecas utilizadas pelo OpenGL
+// Bibliotecas utilizadas pelo OpenGL 
+//#include <GL/glew.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glut.h>
@@ -104,7 +105,7 @@ int main(int argc, char** argv)
 	glutSpecialFunc(keyboard_special);	//funcao callback do teclado especial
 	   
 	glutMainLoop(); // executa o loop do OpenGL
-	
+	glDisable(GL_TEXTURE_2D);
 	return 0; // retorna 0 para o tipo inteiro da funcao main();
 }
 
@@ -126,14 +127,16 @@ void init(void)
 	glEnable(GL_LIGHT0);
 	// Habilita o depth-buffering
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_BLEND);
+	glDepthFunc(GL_LESS);
+	//glEnable(GL_BLEND);
 
 
 	/* Activa o modelo de sombreagem de "Gouraud". */
 	glShadeModel( GL_SMOOTH );
 
 	/* Activa o z-buffering, de modo a remover as superf?cies escondidas */
-	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_DEPTH_TEST); 
+	glEnable(GL_TEXTURE_2D); 
 
     glutTimerFunc(30, timer_callback,30);
 }
@@ -314,25 +317,18 @@ GLfloat angulo = 0.0f;
 void display(void)
 {
 
-	// muda para o modo GL_MODELVIEW (nao pretendemos alterar a projecao
-	// quando estivermos desenhando na tela)
-	//glMatrixMode(GL_MODELVIEW);
-	// Especifica sistema de coordenadas de proje??o
-	glMatrixMode(GL_PROJECTION);
 
 	/* Apaga o video e o depth buffer, e reinicia a matriz */
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 	glLoadIdentity();
-	//glColor3ub(0, 0, 0);
-	glClearColor(0.0, 0.0, 0.0, 0.0);
-	glLoadIdentity();//Limpa o Buffer de Cores;
+	// Especifica sistema de coordenadas de proje??o
+	glMatrixMode(GL_PROJECTION);
 	glRotatef( rotate_x, 1.0, 0.0, 0.0 );
 	glRotatef( rotate_y, 0.0, 1.0, 0.0 );
 	DefineIluminacao();
 	gluLookAt(0.0f, 0.1f, 0.1f, 0.f, 0.f, 0.f, 0.f, 1.0f, 0.f);//visao da camera
 	criaCenario();
 	criaPersonagens();
-	glFlush();
 	glutSwapBuffers();
 }
 
@@ -410,6 +406,7 @@ void criaCubo(float x)
 	glNormal3f(1.0, 0.0, 0.0);
 	glColor3f(1.0f, 1.0f, 0.0f);
 	glVertex3f(x, x, x);
+	
 	glColor3f(1.0f, 0.0f, 0.0f);
 	glVertex3f(x, -x, x);
 	glColor3f(1.0f, 0.0f, 1.0f);
@@ -423,12 +420,10 @@ void criaCubo(float x)
 
 	glColor3f(0.0f, 1.0f, 0.0f);
 	glVertex3f(-x, x, x);
-
 	glColor3f(1.0f, 1.0f, 0.0f);
 	glVertex3f(x, x, x);
 	glColor3f(1.0f, 1.0f, 1.0f);
 	glVertex3f(x, x, -x);
-
 	// Face inferior
 	glNormal3f(0.0, -1.0, 0.0);
 	glColor3f(0.0f, 0.0f, 1.0f);
@@ -443,7 +438,7 @@ void criaCubo(float x)
 	glColor3f(0.0f, 0.0f, 0.0f);
 	glVertex3f(-x, -x, x);
 	glTexCoord2f(0, 0);
-	glEnd();
+	glEnd();   
 }
 
 void DefineIluminacao (void)
@@ -492,11 +487,12 @@ void DefineIluminacao (void)
 void criaCenario() //quantidade de blocos do cenario
 {
 	float c = 1;
-	unsigned int t;
-	glGenTextures(1, &t); //gera nomes identificadores de texturas
+	GLuint texture1,texture2;
+
 	int w, h;
 	unsigned char *uc = stbi_load("../texturas/donkey_kong_arcade.jpg", &w, &h, NULL, 0);
-	glBindTexture(GL_TEXTURE_2D, t); //Ativa a textura atual
+	glGenTextures(1, &texture1); //gera nomes identificadores de texturas
+	glBindTexture(GL_TEXTURE_2D, texture1); //Ativa a textura atual
 
 	//Cria a textura lateral de cada bloco
 
@@ -506,7 +502,7 @@ void criaCenario() //quantidade de blocos do cenario
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
 
-	glEnable(GL_TEXTURE_2D);
+
 	int auxiliar = 0;
 	for (int k = 0; k < 5; k++) //numero de andares 'k'
 	{
@@ -573,14 +569,15 @@ void criaCenario() //quantidade de blocos do cenario
 		}
 		c = 1;
 	}
-	glDisable(GL_TEXTURE_2D);  //desativa a textura dos blocos
+	//glDisable(GL_TEXTURE_2D);  //desativa a textura dos blocos
+	glDeleteTextures(1, &texture1);
 	stbi_image_free(uc);
 
 	criaEscada(0.59,0.29,0.0);
 
 	unsigned char *uc3 = stbi_load("../texturas/barril.jpg", &w, &h, NULL, 0);
-	glGenTextures(1, &t); //gera nomes identificadores de texturas
-	glBindTexture(GL_TEXTURE_2D, t); //Ativa a textura atual
+	glGenTextures(1, &texture2); //gera nomes identificadores de texturas
+	glBindTexture(GL_TEXTURE_2D, texture2); //Ativa a textura atual
 	//Cria a textura de cada barril
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h,
@@ -588,7 +585,6 @@ void criaCenario() //quantidade de blocos do cenario
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	//glEnable(GL_COLOR_MATERIAL);
-	glEnable(GL_TEXTURE_2D);//inicia a textura do barril
 
 
 	//barril
@@ -631,8 +627,9 @@ void criaCenario() //quantidade de blocos do cenario
 	}
 		
 	barrilRotacao=-barrilRotacao;   //constante em qualquer situação
-		
-	glDisable(GL_TEXTURE_2D);//desativa a textura do barril
+	
+	glDeleteTextures(1, &texture2);	
+	//glDisable(GL_TEXTURE_2D);//desativa a textura do barril
 	stbi_image_free(uc3);
 
 	//personagem
