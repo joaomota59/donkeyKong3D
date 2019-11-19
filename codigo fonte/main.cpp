@@ -9,6 +9,9 @@
 #include <GL/glu.h>
 #include <GL/glut.h>
 #include <stdio.h>
+#include <vector>
+// #include <iostream>
+// #include <stdlib.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include "glm.h"
@@ -16,6 +19,7 @@
 #define quantEscadas 4
 #define BLOCOS 100 //quantidade de blocos da fase(por onde o personagem vai andar)
 #include <string>
+// using namespace std;
 //Variaveis Globais usadas para definicao de cores
 float R, G, B;
 bool esquerda = false, direita = false, cima = false, baixo = false; //botoes para mover o personagem
@@ -30,8 +34,8 @@ bool pulo=false;
 int contPulo=0;
  //barril variáveis
 float barrilX=0.2,barrilY=0.0,barrilZ=-0.65,raioBarril=0.05;//coordenadas iniciais do barril
-float velX=0.015,velZ=0.015,barrilRotacao=-0.02; 
-bool barrilEsquerda=true,barrilDireita=false,barrilBaixo=false;
+// float velX=0.015,velZ=0.015,barrilRotacao=-0.02; 
+// bool barrilEsquerda=true,barrilDireita=false,barrilBaixo=false;
 
 
 
@@ -81,15 +85,46 @@ struct Vertex
 	float texCoord[3];
 };
 
+typedef struct Barril
+{
+	float x;
+	float y;
+	float z;
+	float raio;
+	float velX;
+	float velZ;
+	float rotacao;
+	bool esquerda;
+	bool direita;
+	bool baixo;
+} tBarril;
+
 //Global
 tBloco blocks[BLOCOS];
 Escada escadas[quantEscadas];
+// std::vector<tBarril> barris;
+tBarril barris[20];
+int qte_barris = 0;
+int maxIntervalo = 5;
+int intervalo = 0;
 double rotate_y = 0;
 double rotate_x = 0;
 
 // Funcao Principal do C
 int main(int argc, char** argv)
 {
+	tBarril b;
+	b.x = 0.2;
+	b.y = 0.0;
+	b.z = -0.65;
+	b.raio = 0.05;
+	b.velX = 0.015;
+	b.velZ = 0.015;
+	b.rotacao = -0.02;
+	b.esquerda = true;
+	b.direita = false;
+	b.baixo = false;
+	barris[qte_barris++] = b;
 	glutInit(&argc, argv); // Passagens de parametros C para o glut
 	glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH); // Selecao do Modo do Display e do Sistema de cor utilizado
 	glutInitWindowSize (1000, 700);  // Tamanho da janela do OpenGL
@@ -187,28 +222,35 @@ void keyboard(unsigned char key, int x, int y)
 
 void timer_callback(int value){
     glutTimerFunc(value, timer_callback, value);
-    if(colisao(barrilX, barrilY, barrilZ, raioBarril,personX,personY,personZ,raioPerson)){
-		printf("Perdeu dd");
-		exit(0);
+    for(int i = 0; i < qte_barris; i++) {
+		if(colisao(barris[i].x, barris[i].y, barris[i].z, barris[i].raio,personX,personY,personZ,raioPerson)){
+			printf("Perdeu dd");
+			exit(0);
+		}
+	// }
+	// for(int i = 0; i < qte_barris; i++) {
+	    if(barris[i].x <= -1){
+			barris[i].esquerda = false;
+			barris[i].direita = true;
+			barris[i].baixo = false;
+		}
+		if(barris[i].x >= 1){
+			barris[i].esquerda = true;
+			barris[i].direita = false;
+			barris[i].baixo = false;
+		}
+	// }
+	// for(int i = 0; i < qte_barris; i++) {
+		int flag = 0;
+		printf("%d\n", i);
+		for(int j = 0; j < 45; i ++)//verifica quando o barril vai descendo
+			if(blocks[j].colide && colisao(blocks[j].x, blocks[j].y, blocks[j].z, blocks[j].raio,barris[i].x,barris[i].y,barris[i].z,barris[i].raio) ){
+				flag = 1;
+				printf("\ncolisao figura %d ", i);
+			}	
+		if(flag == 0)//entao é pq o barril colidiu c o bloco proximo a escada
+			barris[i].baixo = true;
 	}
-    if(barrilX <= -1){
-		barrilEsquerda = false;
-		barrilDireita = true;
-		barrilBaixo = false;
-	}
-	if(barrilX >= 1){
-	barrilEsquerda = true;
-		barrilDireita = false;
-		barrilBaixo = false;
-	}
-	int flag = 0;
-	for(int i = 0; i < 45; i ++)//verifica quando o barril vai descendo
-		if(blocks[i].colide && colisao(blocks[i].x, blocks[i].y, blocks[i].z, blocks[i].raio,barrilX,barrilY,barrilZ,raioBarril) ){
-			flag = 1;
-			printf("brail figura %d ", i);
-		}	
-	if(flag == 0)//entao é pq o barril colidiu c o bloco proximo a escada
-		barrilBaixo = true;
     glutPostRedisplay(); // Manda redesenhar o display em cada frame
 }
 
@@ -330,6 +372,7 @@ void display(void)
 	criaCenario();
 	criaPersonagens();
 	glutSwapBuffers();
+	intervalo += 1;
 }
 
 
@@ -609,28 +652,45 @@ void criaCenario() //quantidade de blocos do cenario
 
 	}
 	
-		
-	glPushMatrix();//barril em movimento	
-	glColor3f(0.0f, 0.0f, 0.0f);//cor do objeto verde
-	gluQuadricTexture(quad, GLU_TRUE);//textura do quadrado ? ativada
-	glTranslatef(barrilX,barrilY,barrilZ); //posicao final do barril
-	glRotatef(90, barrilRotacao, 0.0f, 0.0f);//rotacao
-	gluSphere(quad, raioBarril, 30, 30);//gera a esfera baseado no objeto do quadrado
-	glPopMatrix();
-	if(barrilEsquerda)
-		barrilX-=velX;
-	if(barrilDireita) 
-		barrilX+=velX;
-	if(barrilBaixo){
-		barrilZ+=velZ;
-		barrilBaixo = false;
+	if(intervalo % 10000 == 0 && qte_barris < 20) {
+		// float barrilX=0.2,barrilY=0.0,barrilZ=-0.65,raioBarril=0.05;//coordenadas iniciais do barril
+// float velX=0.015,velZ=0.015,barrilRotacao=-0.02; 
+// bool barrilEsquerda=true,barrilDireita=false,barrilBaixo=false;
+		tBarril b;
+		b.x = 0.2;
+		b.y = 0.0;
+		b.z = -0.65;
+		b.raio = 0.05;
+		b.velX = 0.015;
+		b.velZ = 0.015;
+		b.rotacao = -0.02;
+		b.esquerda = true;
+		b.direita = false;
+		b.baixo = false;
+		barris[qte_barris++] = b;
 	}
-		
-	barrilRotacao=-barrilRotacao;   //constante em qualquer situação
-	
+	for(int i = 0; i < qte_barris; i ++) {
+		glPushMatrix();//barril em movimento	
+		glColor3f(0.0f, 0.0f, 0.0f);//cor do objeto verde
+		gluQuadricTexture(quad, GLU_TRUE);//textura do quadrado ? ativada
+		glTranslatef(barris[i].x, barris[i].y, barris[i].z); //posicao final do barril
+		glRotatef(90, barris[i].rotacao, 0.0f, 0.0f);//rotacao
+		gluSphere(quad, barris[i].raio, 30, 30);//gera a esfera baseado no objeto do quadrado
+		glPopMatrix();
+		if(barris[i].esquerda)
+			barris[i].x -= barris[i].velX;
+		if(barris[i].direita) 
+			barris[i].x += barris[i].velX;
+		if(barris[i].baixo){
+			barris[i].z += barris[i].velZ;
+			barris[i].baixo = false;
+		}
+			
+		barris[i].rotacao =- barris[i].rotacao;   //constante em qualquer situação
+	}
 	glDeleteTextures(1, &texture2);	
-	//glDisable(GL_TEXTURE_2D);//desativa a textura do barril
 	stbi_image_free(uc3);
+	//glDisable(GL_TEXTURE_2D);//desativa a textura do barril
 
 	//personagem
 	glPushMatrix();
