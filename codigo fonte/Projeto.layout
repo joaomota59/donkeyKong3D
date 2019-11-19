@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Layout>
 	<Files>
-		<File Name="main.cpp" Top="No" Tabpos="1" TopLine="33">
-			<Cursor Line="50" Column="15"/>
-		</File>
-		<File Name="stb_image.h" Top="Yes" Tabpos="2" TopLine="868">
-			<Cursor Line="884" Column="37"/>
+		<File Name="main.cpp" Top="Yes" Tabpos="2" TopLine="1187">
+			<Cursor Line="1218" Column="5"/>
+			<Selection Line="1762" Column="2"/>
 		</File>
 	</Files>
 </Layout>

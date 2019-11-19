@@ -242,11 +242,9 @@ void timer_callback(int value){
 	// }
 	// for(int i = 0; i < qte_barris; i++) {
 		int flag = 0;
-		printf("%d\n", i);
-		for(int j = 0; j < 45; i ++)//verifica quando o barril vai descendo
+		for(int j = 0; j < 45; j ++)//verifica quando o barril vai descendo
 			if(blocks[j].colide && colisao(blocks[j].x, blocks[j].y, blocks[j].z, blocks[j].raio,barris[i].x,barris[i].y,barris[i].z,barris[i].raio) ){
 				flag = 1;
-				printf("\ncolisao figura %d ", i);
 			}	
 		if(flag == 0)//entao é pq o barril colidiu c o bloco proximo a escada
 			barris[i].baixo = true;
@@ -652,7 +650,7 @@ void criaCenario() //quantidade de blocos do cenario
 
 	}
 	
-	if(intervalo % 10000 == 0 && qte_barris < 20) {
+	if(intervalo % 100 == 0 && qte_barris < 20) {
 		// float barrilX=0.2,barrilY=0.0,barrilZ=-0.65,raioBarril=0.05;//coordenadas iniciais do barril
 // float velX=0.015,velZ=0.015,barrilRotacao=-0.02; 
 // bool barrilEsquerda=true,barrilDireita=false,barrilBaixo=false;
