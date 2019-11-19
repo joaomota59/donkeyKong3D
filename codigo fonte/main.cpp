@@ -10,6 +10,7 @@
 #include <GL/glut.h>
 #include <stdio.h>
 #include <vector>
+#include <time.h>       /* time */
 // #include <iostream>
 // #include <stdlib.h>
 #define STB_IMAGE_IMPLEMENTATION
@@ -26,6 +27,7 @@ bool esquerda = false, direita = false, cima = false, baixo = false; //botoes pa
 float personX = 0.85, personY=0.0,personZ = 0.83,raioPerson=0.07; //coordenadas iniciais do personagem
 float personComp = 50, personAlt = 30; //comprimento e altura do personagem
 char ch = '1';
+int numerobarril=-1;
 int flagColisaoEP=0;
 GLMmodel* pmodel = NULL;
 GLMmodel* pmode2 = NULL;
@@ -113,6 +115,8 @@ double rotate_x = 0;
 // Funcao Principal do C
 int main(int argc, char** argv)
 {
+	  /* initialize random seed: */
+    srand (time(NULL));
 	tBarril b;
 	b.x = 0.2;
 	b.y = 0.0;
@@ -241,13 +245,28 @@ void timer_callback(int value){
 		}
 	// }
 	// for(int i = 0; i < qte_barris; i++) {
-		int flag = 0;
-		for(int j = 0; j < 45; j ++)//verifica quando o barril vai descendo
+		int flag = 0,number=-1;
+		for(int j = 0; j < 45; j ++){//verifica quando o barril vai descendo
 			if(blocks[j].colide && colisao(blocks[j].x, blocks[j].y, blocks[j].z, blocks[j].raio,barris[i].x,barris[i].y,barris[i].z,barris[i].raio) ){
 				flag = 1;
-			}	
-		if(flag == 0)//entao é pq o barril colidiu c o bloco proximo a escada
+				break;
+			}
+			if(j==0 && !blocks[j].colide && colisao(blocks[j].x, blocks[j].y, blocks[j].z, blocks[j].raio,barris[i].x,barris[i].y,barris[i].z,barris[i].raio) ){
+				number = 0;
+			}
+		}   	
+		if(flag == 0){//entao é pq o barril colidiu c o bloco proximo a escada
 			barris[i].baixo = true;
+			if(number==0){
+			  barris[i].x = 0.2; 
+			  barris[i].y = 0.0;
+			  barris[i].z = -0.65;
+			  barris[i].esquerda=true;
+			  barris[i].direita=false;
+			  barris[i].baixo=false;
+			}
+		}	
+			
 	}
     glutPostRedisplay(); // Manda redesenhar o display em cada frame
 }
@@ -329,7 +348,7 @@ void keyboard_special(int key, int x, int y)
 				   cima=false;
 				   baixo=false;
 				   }
-				   	if(!blocks[i].colide && colisao(blocks[i].x, blocks[i].y, blocks[i].z, blocks[i].raio,personX,personY,personZ,raioPerson+0.12)){
+				   	if(i!=0 && !blocks[i].colide && colisao(blocks[i].x, blocks[i].y, blocks[i].z, blocks[i].raio,personX,personY,personZ,raioPerson+0.12)){
 			
 				   				   personZ += 0.035;
 				   				   baixo=true;
@@ -577,7 +596,10 @@ void criaCenario() //quantidade de blocos do cenario
 			b.z = tz;
 			b.raio = 0.09+0.03;
 			if(k == 0){
-				b.colide = true;
+				if(i==0)
+					b.colide=false;
+				else
+					b.colide = true;
 			}
 			if(k == 1){
 				if(i == BLOCKS - 1 || i == BLOCKS - 2)
@@ -650,7 +672,7 @@ void criaCenario() //quantidade de blocos do cenario
 
 	}
 	
-	if(intervalo % 100 == 0 && qte_barris < 20) {
+	if(intervalo % 100 == 0 && qte_barris <6) {
 		// float barrilX=0.2,barrilY=0.0,barrilZ=-0.65,raioBarril=0.05;//coordenadas iniciais do barril
 // float velX=0.015,velZ=0.015,barrilRotacao=-0.02; 
 // bool barrilEsquerda=true,barrilDireita=false,barrilBaixo=false;
@@ -667,7 +689,9 @@ void criaCenario() //quantidade de blocos do cenario
 		b.baixo = false;
 		barris[qte_barris++] = b;
 	}
+
 	for(int i = 0; i < qte_barris; i ++) {
+
 		glPushMatrix();//barril em movimento	
 		glColor3f(0.0f, 0.0f, 0.0f);//cor do objeto verde
 		gluQuadricTexture(quad, GLU_TRUE);//textura do quadrado ? ativada
@@ -685,6 +709,7 @@ void criaCenario() //quantidade de blocos do cenario
 		}
 			
 		barris[i].rotacao =- barris[i].rotacao;   //constante em qualquer situação
+		
 	}
 	glDeleteTextures(1, &texture2);	
 	stbi_image_free(uc3);
