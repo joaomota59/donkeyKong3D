@@ -11,8 +11,10 @@
 #include <stdio.h>
 #include <vector>
 #include <time.h>       /* time */
-// #include <iostream>
-// #include <stdlib.h>
+#include <windows.h>
+#include <mmsystem.h>
+
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include "glm.h"
@@ -115,8 +117,7 @@ double rotate_x = 0;
 // Funcao Principal do C
 int main(int argc, char** argv)
 {
-	  /* initialize random seed: */
-    srand (time(NULL));
+	
 	tBarril b;
 	b.x = 0.2;
 	b.y = 0.0;
@@ -129,10 +130,12 @@ int main(int argc, char** argv)
 	b.direita = false;
 	b.baixo = false;
 	barris[qte_barris++] = b;
+	
 	glutInit(&argc, argv); // Passagens de parametros C para o glut
 	glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH); // Selecao do Modo do Display e do Sistema de cor utilizado
 	glutInitWindowSize (1000, 700);  // Tamanho da janela do OpenGL
 	glutInitWindowPosition (100, 100); //Posicao inicial da janela do OpenGL
+	
 	glutCreateWindow ("Donkey Kong"); // Da nome para uma janela OpenGL
 
 	init(); // Chama a funcao init();
@@ -229,6 +232,7 @@ void timer_callback(int value){
     for(int i = 0; i < qte_barris; i++) {
 		if(colisao(barris[i].x, barris[i].y, barris[i].z, barris[i].raio,personX,personY,personZ,raioPerson)){
 			printf("Perdeu dd");
+			PlaySound(TEXT("perdeu.wav"), NULL, SND_SYNC);
 			exit(0);
 		}
 	// }
