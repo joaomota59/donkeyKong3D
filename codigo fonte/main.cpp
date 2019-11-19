@@ -672,7 +672,7 @@ void criaCenario() //quantidade de blocos do cenario
 
 	}
 	
-	if(intervalo % 100 == 0 && qte_barris <6) {
+	if(intervalo % 220 == 0 && qte_barris <6) {
 		// float barrilX=0.2,barrilY=0.0,barrilZ=-0.65,raioBarril=0.05;//coordenadas iniciais do barril
 // float velX=0.015,velZ=0.015,barrilRotacao=-0.02; 
 // bool barrilEsquerda=true,barrilDireita=false,barrilBaixo=false;
@@ -681,7 +681,7 @@ void criaCenario() //quantidade de blocos do cenario
 		b.y = 0.0;
 		b.z = -0.65;
 		b.raio = 0.05;
-		b.velX = 0.015;
+		b.velX = 0.015 * (qte_barris + 1)/2;
 		b.velZ = 0.015;
 		b.rotacao = -0.02;
 		b.esquerda = true;
