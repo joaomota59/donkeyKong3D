@@ -25,7 +25,7 @@
 // using namespace std;
 //Variaveis Globais usadas para definicao de cores
 float R, G, B;
-bool esquerda = false, direita = false, cima = false, baixo = false; //botoes para mover o personagem
+bool esquerda = false, direita = false, cima = false, baixo = false,menu=true; //botoes para mover o personagem
 float personX = 0.85, personY=0.0,personZ = 0.83,raioPerson=0.07; //coordenadas iniciais do personagem
 float personComp = 50, personAlt = 30; //comprimento e altura do personagem
 char ch = '1';
@@ -36,29 +36,33 @@ GLMmodel* pmode2 = NULL;
 GLMmodel* pmode3 = NULL;
 bool pulo=false;
 int contPulo=0;
- //barril variáveis
+ //barril vari?veis
 float raioBarril=0.05;//coordenadas iniciais do barril
 float velocidadesBarril[3] = {0.015 , 0.020, 0.025}; 
-
+typedef struct Retangulo;
 
 // Declaracoes forward das funcoes utilizadas
 void init(void);
 void reshape(int w, int h);
 void keyboard(unsigned char key, int x, int y);
 void keyboard_special(int key, int x, int y);
+void GerenciaMouse(int button, int state, int x, int y);
 void display(void);
 void criaBloco(void);
 void criaCubo(float x);
 void criaCenario(void);
 void DefineIluminacao(void);
 void criaEscada(float R,float G,float B);
+void criaQuadrado(float x);
 void criaPersonagens(void);
+void criaMenu(void);
 void drawModel(char *fname);
 void drawMode2(char *fname);
 void drawMode3(char *fname);
 void timer_callback(int value);
 bool colisao(float x1, float y1, float z1, float raio1,float x2, float y2, float z2, float raio2);//colisao esfera esfera
 bool colisaoEP(float x1,float y1 ,float z1,float altura,float largura,float profundidade,float x2,float y2,float z2,float raio2);//colisao esfera e paralelepipedo
+bool colisaoQP(Retangulo figura, float x_clique,float y_clique);//olha se um ponto(clique) está dentro de um quadrilatero (colisao quadriátero e ponto)
 
 
 struct Escada{
@@ -101,6 +105,13 @@ typedef struct Barril
 	bool baixo;
 } tBarril;
 
+typedef struct Retangulo{
+	 float x;
+	 float y;
+	 float altura;
+	 float largura;	
+};
+
 //Global
 tBloco blocks[BLOCOS];
 Escada escadas[quantEscadas];
@@ -112,6 +123,7 @@ int intervalo = 0;
 double rotate_y = 0;
 double rotate_x = 0;
 
+
 // Funcao Principal do C
 int main(int argc, char** argv)
 {   
@@ -122,7 +134,7 @@ int main(int argc, char** argv)
 	glutInitWindowPosition (100, 100); //Posicao inicial da janela do OpenGL
 	
 	glutCreateWindow ("Donkey Kong"); // Da nome para uma janela OpenGL
-
+	glutMouseFunc(GerenciaMouse);
 	init(); // Chama a funcao init();
 	glEnable(GL_DEPTH_TEST);// Habilitando o teste de profundidade do Z-buffer
 	// Registra a fun??o callback que ser? chamada a cada intervalo de tempo
@@ -158,7 +170,6 @@ void init(void)
 	barris[qte_barris++] = b;	
 	// Habilita a defini??o da cor do material a partir da cor corrente
 	//
-
 	glEnable(GL_FOG);
 	glEnable(GL_COLOR_MATERIAL);
 	//Habilita o uso de ilumina??o
@@ -179,6 +190,23 @@ void init(void)
 	glEnable(GL_TEXTURE_2D); 
 
     glutTimerFunc(30, timer_callback,30);
+}
+
+void GerenciaMouse(int button, int state, int x, int y){
+  	if (button == GLUT_LEFT_BUTTON)
+         if (state == GLUT_DOWN) {
+         	if(menu){
+         	Retangulo r;
+         	r.x=500;
+         	r.y=350;
+         	r.largura=400;
+         	r.altura=200;
+         	
+         	if(colisaoQP(r,x,y))
+   				menu=false;
+	   }
+         }
+    glutPostRedisplay();
 }
 
 void reshape(int w, int h)
@@ -219,7 +247,7 @@ void keyboard(unsigned char key, int x, int y)
 	case 27: // codigo ASCII da tecla ESC
 		exit(0); // comando pra finalizacao do programa
 		break;
-	case ' '://tecla espaço do teclado
+	case ' '://tecla espa?o do teclado
 		pulo=true;
 		break;
 	}
@@ -257,9 +285,9 @@ void timer_callback(int value){
 				number = 0;
 			}
 		}   	
-		if(flag == 0){//entao é pq o barril colidiu c o bloco proximo a escada
+		if(flag == 0){//entao ? pq o barril colidiu c o bloco proximo a escada
 			barris[i].baixo = true;
-			if(number==0){//restaura os valores de translação inicial do barril
+			if(number==0){//restaura os valores de transla??o inicial do barril
 			  barris[i].x = 0.2; 
 			  barris[i].y = 0.0;
 			  barris[i].z = -0.65;
@@ -275,8 +303,8 @@ void timer_callback(int value){
 			personZ += 0.035;
 	}
 	if(colisao(0.23, 0.0, -1.21, 0.07, personX,personY,personZ, raioPerson)) {
-		printf("Ganhou dd");
-		PlaySound(TEXT("../audios/ganhou.wav"), NULL, SND_SYNC);
+		printf("Perdeu dd");
+		PlaySound(TEXT("../audios/perdeu.wav"), NULL, SND_SYNC);
 		exit(0);
 	}
     glutPostRedisplay(); // Manda redesenhar o display em cada frame
@@ -331,7 +359,7 @@ void keyboard_special(int key, int x, int y)
 	case GLUT_KEY_UP://seta cima
 		flag1=0;
 		if(!pulo){
-			for(int i=0;i<quantEscadas;i++){//verifica se há colisão com a escada e personagem
+			for(int i=0;i<quantEscadas;i++){//verifica se h? colis?o com a escada e personagem
 				if (colisaoEP(escadas[i].x,escadas[i].y,escadas[i].z,escadas[i].altura,escadas[i].largura,escadas[i].profundidade,personX,personY,personZ,raioPerson)){
    	   	   	   	   personZ -= 0.035;
    	   	   	   	   cima=true;
@@ -340,7 +368,7 @@ void keyboard_special(int key, int x, int y)
    	   	   	   	   break;
 	  	        }	
 			}
-		if(flag1==0)//quando não colidir mais com a escada 
+		if(flag1==0)//quando n?o colidir mais com a escada 
 			cima=false;
 		}
 		glutPostRedisplay();
@@ -348,7 +376,7 @@ void keyboard_special(int key, int x, int y)
 		
 
 	case GLUT_KEY_DOWN://seta baixo
-		/*	for(int i=0;i<quantEscadas;i++){//verifica se há colisão com as escadas			
+		/*	for(int i=0;i<quantEscadas;i++){//verifica se h? colis?o com as escadas			
 			if(colisaoEP(escadas[i].x,escadas[i].y,escadas[i].z,escadas[i].altura,escadas[i].largura,escadas[i].profundidade,personX,personY,personZ,raioPerson)){
 				personZ += 0.035;
 				break;	
@@ -386,7 +414,7 @@ GLfloat angulo = 0.0f;
 // Funcao usada na funcao callback para desenhar na tela
 void display(void)
 {
-
+		
 
 	/* Apaga o video e o depth buffer, e reinicia a matriz */
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
@@ -397,8 +425,13 @@ void display(void)
 	glRotatef( rotate_y, 0.0, 1.0, 0.0 );
 	DefineIluminacao();
 	gluLookAt(0.0f, 0.1f, 0.1f, 0.f, 0.f, 0.f, 0.f, 1.0f, 0.f);//visao da camera
-	criaCenario();
-	criaPersonagens();
+	if(menu)
+		criaMenu();
+	else{
+		criaCenario();
+		criaPersonagens();	
+	}
+
 	glutSwapBuffers();
 	intervalo += 1;
 }
@@ -738,7 +771,7 @@ void criaCenario() //quantidade de blocos do cenario
 			barris[i].baixo = false;
 		}
 			
-		barris[i].rotacao =- barris[i].rotacao;   //constante em qualquer situação
+		barris[i].rotacao =- barris[i].rotacao;   //constante em qualquer situa??o
 		
 	}
 	glDeleteTextures(1, &texture2);	
@@ -765,7 +798,55 @@ void criaCenario() //quantidade de blocos do cenario
 	
 }
 
-void criaEscada(float R,float G ,float B) //Cria as escadas do cenário
+void criaMenu(){
+	
+	GLuint texture1,texture2;
+	int w, h,nrChannels;
+	unsigned char *uc = stbi_load("../texturas/start.png", &w, &h, NULL, 0);
+	glGenTextures(1, &texture1); //gera nomes identificadores de texturas
+	glBindTexture(GL_TEXTURE_2D, texture1); //Ativa a textura atual
+
+	//Cria a textura do menu
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h,
+				 0, GL_RGB, GL_UNSIGNED_BYTE, uc);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+		glPushMatrix();
+	glTranslatef( 0, 0, 0);//origem
+	glRotatef(180,0,0,0);//rotacao de 180 graus
+	glScalef(4.5,0,4.5);
+	criaQuadrado(0.09);
+	glPopMatrix();
+    glDeleteTextures(1, &texture1);
+	stbi_image_free(uc);   
+	
+	
+	unsigned char *uc2 = stbi_load("../texturas/dklogo.png", &w, &h, &nrChannels, 0);
+	glGenTextures(1, &texture2); //gera nomes identificadores de texturas
+	glBindTexture(GL_TEXTURE_2D, texture2); //vincula a textura atual
+
+	//Cria a textura com o nome donkey kong
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h,
+				 0, GL_RGB, GL_UNSIGNED_BYTE, uc2);
+				 
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+	glPushMatrix();
+	glTranslatef(0, 0, -0.9);//origem
+	glRotatef(180,0,0,0);//rotacao de 180 graus
+	glScalef(4.5,0,4.5);
+	criaQuadrado(0.09);
+	glPopMatrix();
+    glDeleteTextures(1, &texture2);
+	stbi_image_free(uc2);
+	
+}
+
+void criaEscada(float R,float G ,float B) //Cria as escadas do cen?rio
 {
 	Escada e;
 
@@ -901,6 +982,21 @@ void criaPersonagens()//personagens(macaco e princesa) e as escadas!
 	
 
 }
+
+void criaQuadrado(float x){	
+	
+	  glBegin(GL_QUADS);
+		glColor3f(0.0f, 1.0f, 0.0f);//cor verde do objeto 
+		glTexCoord2f(1, 1); //atribui coordenada de textura ao objeto
+		glVertex3f(-x, -x, -x);
+		glTexCoord2f(0, 1);
+		glVertex3f(x, -x, -x);
+		glTexCoord2f(0, 0);			  
+		glVertex3f(x, -x, x);  
+		glTexCoord2f(1,0);
+		glVertex3f(-x, -x, x);
+	  glEnd();	  
+}
 //x1,y1,z1,raio 1 coordenadas do 1 elemento e x2,y2,z2,raio 2 coordenadas do 2 elemento 
 bool colisao(float x1, float y1, float z1, float raio1,float x2, float y2, float z2, float raio2){
 	float d = sqrt((- x1 + x2)  * (- x1 +  x2) + (-y1 + y2) * (-y1 + y2)+  ( -z1 + z2) * (-z1 + z2));	
@@ -929,3 +1025,8 @@ bool colisaoEP(float x1,float y1 ,float z1,float altura,float largura,float prof
 
     return (cornerDistance_sq <= (raio2 * raio2));	   
 }
+bool colisaoQP(Retangulo figura, float x_clique,float y_clique){//colisao quadrado e um ponto qualquer(clique)	
+  return (abs(figura.x - x_clique) * 2 < (figura.largura )) &&
+         (abs(figura.y - y_clique) * 2 < (figura.altura));
+}
+
