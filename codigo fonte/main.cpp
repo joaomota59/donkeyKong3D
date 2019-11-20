@@ -275,8 +275,8 @@ void timer_callback(int value){
 			personZ += 0.035;
 	}
 	if(colisao(0.23, 0.0, -1.21, 0.07, personX,personY,personZ, raioPerson)) {
-		printf("Perdeu dd");
-		PlaySound(TEXT("../audios/perdeu.wav"), NULL, SND_SYNC);
+		printf("Ganhou dd");
+		PlaySound(TEXT("../audios/ganhou.wav"), NULL, SND_SYNC);
 		exit(0);
 	}
     glutPostRedisplay(); // Manda redesenhar o display em cada frame
