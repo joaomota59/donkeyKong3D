@@ -131,6 +131,7 @@ int main(int argc, char** argv)
 	b.baixo = false;
 	barris[qte_barris++] = b;
 	
+	PlaySound(TEXT("background.wav"), NULL, SND_ASYNC);
 	glutInit(&argc, argv); // Passagens de parametros C para o glut
 	glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH); // Selecao do Modo do Display e do Sistema de cor utilizado
 	glutInitWindowSize (1000, 700);  // Tamanho da janela do OpenGL
