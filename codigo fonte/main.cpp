@@ -274,6 +274,11 @@ void timer_callback(int value){
 		if(colisaoEP(buracos[i].x,buracos[i].y,buracos[i].z,buracos[i].raio*2+0.25,0.06,0.08,personX,personY,personZ,raioPerson))
 			personZ += 0.035;
 	}
+	if(colisao(0.23, 0.0, -1.21, 0.07, personX,personY,personZ, raioPerson)) {
+		printf("Perdeu dd");
+		PlaySound(TEXT("../audios/perdeu.wav"), NULL, SND_SYNC);
+		exit(0);
+	}
     glutPostRedisplay(); // Manda redesenhar o display em cada frame
 }
 
@@ -898,10 +903,7 @@ void criaPersonagens()//personagens(macaco e princesa) e as escadas!
 }
 //x1,y1,z1,raio 1 coordenadas do 1 elemento e x2,y2,z2,raio 2 coordenadas do 2 elemento 
 bool colisao(float x1, float y1, float z1, float raio1,float x2, float y2, float z2, float raio2){
-	float d = sqrt((- x1 + x2)  * (- x1 +  x2) + (-y1 + y2) * (-y1 + y2)+  ( -z1 + z2) * (-z1 + z2));
-	//printf("d = %.2f ", d);
-//	printf("s = %.2f\n", 0.07 + raio);
-	
+	float d = sqrt((- x1 + x2)  * (- x1 +  x2) + (-y1 + y2) * (-y1 + y2)+  ( -z1 + z2) * (-z1 + z2));	
 	if(d <= (raio1+raio2))
 		return true;
 	else 
