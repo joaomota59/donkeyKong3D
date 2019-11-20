@@ -104,7 +104,7 @@ typedef struct Barril
 //Global
 tBloco blocks[BLOCOS];
 Escada escadas[quantEscadas];
-// std::vector<tBarril> barris;
+tBloco buracos[3];
 tBarril barris[20];
 int qte_barris = 0;
 int maxIntervalo = 5;
@@ -114,23 +114,8 @@ double rotate_x = 0;
 
 // Funcao Principal do C
 int main(int argc, char** argv)
-{
-	
-	srand(time(NULL));
-	tBarril b;
-	b.x = 0.2;
-	b.y = 0.0;
-	b.z = -0.65;
-	b.raio = 0.05;
-	b.velX = 0.015;
-	b.velZ = 0.015;
-	b.rotacao = velocidadesBarril[rand() % 2];
-	b.esquerda = true;
-	b.direita = false;
-	b.baixo = false;
-	barris[qte_barris++] = b;
-	
-	PlaySound(TEXT("background.wav"), NULL, SND_ASYNC);
+{   
+
 	glutInit(&argc, argv); // Passagens de parametros C para o glut
 	glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH); // Selecao do Modo do Display e do Sistema de cor utilizado
 	glutInitWindowSize (1000, 700);  // Tamanho da janela do OpenGL
@@ -156,8 +141,21 @@ int main(int argc, char** argv)
 
 // Funcao com alguns comandos para a inicializacao do OpenGL;
 void init(void)
-{
-
+{	
+	PlaySound(TEXT("../audios/background.wav"), NULL, SND_ASYNC|SND_LOOP);
+	srand(time(NULL));
+	tBarril b;
+	b.x = 0.2;
+	b.y = 0.0;
+	b.z = -0.65;
+	b.raio = 0.05;
+	b.velX = 0.015;
+	b.velZ = 0.015;
+	b.rotacao = velocidadesBarril[rand() % 2];
+	b.esquerda = true;
+	b.direita = false;
+	b.baixo = false;
+	barris[qte_barris++] = b;	
 	// Habilita a defini??o da cor do material a partir da cor corrente
 	//
 
@@ -232,7 +230,7 @@ void timer_callback(int value){
     for(int i = 0; i < qte_barris; i++) {
 		if(colisao(barris[i].x, barris[i].y, barris[i].z, barris[i].raio,personX,personY,personZ,raioPerson)){
 			printf("Perdeu dd");
-			PlaySound(TEXT("perdeu.wav"), NULL, SND_SYNC);
+			PlaySound(TEXT("../audios/perdeu.wav"), NULL, SND_SYNC);
 			exit(0);
 		}
 	// }
@@ -261,7 +259,7 @@ void timer_callback(int value){
 		}   	
 		if(flag == 0){//entao é pq o barril colidiu c o bloco proximo a escada
 			barris[i].baixo = true;
-			if(number==0){
+			if(number==0){//restaura os valores de translação inicial do barril
 			  barris[i].x = 0.2; 
 			  barris[i].y = 0.0;
 			  barris[i].z = -0.65;
@@ -271,6 +269,10 @@ void timer_callback(int value){
 			}
 		}	
 			
+	}
+		for(int i=0;i<3;i++){//buracos
+		if(colisaoEP(buracos[i].x,buracos[i].y,buracos[i].z,buracos[i].raio*2+0.25,0.06,0.08,personX,personY,personZ,raioPerson))
+			personZ += 0.035;
 	}
     glutPostRedisplay(); // Manda redesenhar o display em cada frame
 }
@@ -568,16 +570,16 @@ void criaCenario() //quantidade de blocos do cenario
 
 
 	int auxiliar = 0;
+	tBloco b;
 	for (int k = 0; k < 5; k++) //numero de andares 'k'
 	{
-		int BLOCKS = 11;
-		if(k == 0) BLOCKS = 12;
+		int BLOCKS = 12;
 		for(int i = 0; i < BLOCKS; i++, auxiliar++)//numero de blocos em cada andar 'i'
 		{
 			float tx, ty, tz;
 			float x = 0, y = 0, z = 0;
 			glPushMatrix();
-			if(k<4 || (k==4 && i>3 && i<6))
+			if(k==0 || (k<4 && i<11) || (k==4 && i>3 && i<6)){
 			if(k % 2 == 0)
 			{
 				tx = c;
@@ -592,45 +594,66 @@ void criaCenario() //quantidade de blocos do cenario
 			}
 
 			float raio;
-			glTranslatef(tx, ty, tz);
-			criaCubo(0.09);
-			tBloco b;
+
 			b.x = tx;
 			b.y = ty;
 			b.z = tz;
-			b.raio = 0.09+0.03;
+			b.raio = 0.12;
 			if(k == 0){
 				if(i==0)
 					b.colide=false;
 				else
 					b.colide = true;
 			}
-			if(k == 1){
-				if(i == BLOCKS - 1 || i == BLOCKS - 2)
+			else if(k == 1){
+				if(i == BLOCKS - 2 || i == BLOCKS - 3)
 					b.colide = false;
 				else
 					b.colide = true;
 			}
-			if(k == 2){
+			else if(k == 2){
 				if(i < 2)
 					b.colide = false;
 				else
 					b.colide = true;
 			}
 			
-			if(k == 3){
-				if(i == BLOCKS - 1 || i == BLOCKS - 2)
+			else if(k == 3){
+				if(i == BLOCKS - 2 || i == BLOCKS - 3)
 					b.colide = false;
 				else
 					b.colide = true;
 			}
-			
-			// if(i == BLOCKS - 1 || i == BLOCKS - 2|| i == BLOCKS - 3) //|| i == BLOCKS - 4 || i == BLOCKS - 5)
-			// 	b.colide = false;
-			// else
-			// 	b.colide = true;
-			// printf("figura %d. x = %.2f, y = %.2f, z = %.2f\n", auxiliar, x, y, z);
 			blocks[auxiliar] = b;
+			}
+			else{
+				if(k==1){
+					   b.x=1.0;
+					   b.y=0.0;
+					   b.z=0.5;
+					   b.raio=0.12;
+					   b.colide=false;
+					   buracos[0]=b;	
+				}
+				else if(k==2){
+ 					   b.x=-0.98;
+					   b.y=0.0;
+					   b.z=0.0;
+					   b.raio=0.12;
+					   b.colide=false;
+					   buracos[1]=b; 	
+				}
+				else if(k==3){
+  					   b.x=1;
+					   b.y=0.0;
+					   b.z=-0.5;
+					   b.raio=0.12;
+					   b.colide=false;
+					   buracos[2]=b; 
+				}   	
+			}
+			glTranslatef(tx, ty,tz);
+			criaCubo(0.09);
 			c = c - 0.18;//distancia entre cada bloco
 			glPopMatrix();
 		}
