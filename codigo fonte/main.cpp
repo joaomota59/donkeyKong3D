@@ -37,10 +37,8 @@ GLMmodel* pmode3 = NULL;
 bool pulo=false;
 int contPulo=0;
  //barril variáveis
-float barrilX=0.2,barrilY=0.0,barrilZ=-0.65,raioBarril=0.05;//coordenadas iniciais do barril
-// float velX=0.015,velZ=0.015,barrilRotacao=-0.02; 
-// bool barrilEsquerda=true,barrilDireita=false,barrilBaixo=false;
-
+float raioBarril=0.05;//coordenadas iniciais do barril
+float velocidadesBarril[3] = {0.015 , 0.020, 0.025}; 
 
 
 // Declaracoes forward das funcoes utilizadas
@@ -118,6 +116,7 @@ double rotate_x = 0;
 int main(int argc, char** argv)
 {
 	
+	srand(time(NULL));
 	tBarril b;
 	b.x = 0.2;
 	b.y = 0.0;
@@ -125,7 +124,7 @@ int main(int argc, char** argv)
 	b.raio = 0.05;
 	b.velX = 0.015;
 	b.velZ = 0.015;
-	b.rotacao = -0.02;
+	b.rotacao = velocidadesBarril[rand() % 2];
 	b.esquerda = true;
 	b.direita = false;
 	b.baixo = false;
@@ -677,16 +676,14 @@ void criaCenario() //quantidade de blocos do cenario
 
 	}
 	
-	if(intervalo % 220 == 0 && qte_barris <6) {
-		// float barrilX=0.2,barrilY=0.0,barrilZ=-0.65,raioBarril=0.05;//coordenadas iniciais do barril
-// float velX=0.015,velZ=0.015,barrilRotacao=-0.02; 
-// bool barrilEsquerda=true,barrilDireita=false,barrilBaixo=false;
+	if(intervalo % 200 == 0 && qte_barris <6) {
+		srand(time(NULL));
 		tBarril b;
 		b.x = 0.2;
 		b.y = 0.0;
 		b.z = -0.65;
 		b.raio = 0.05;
-		b.velX = 0.015 * (qte_barris + 1)/2;
+		b.velX = velocidadesBarril[rand() % 3];
 		b.velZ = 0.015;
 		b.rotacao = -0.02;
 		b.esquerda = true;
