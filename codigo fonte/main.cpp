@@ -25,7 +25,7 @@
 // using namespace std;
 //Variaveis Globais usadas para definicao de cores
 float R, G, B;
-bool esquerda = false, direita = false, cima = false, baixo = false,menu=true; //botoes para mover o personagem
+bool esquerda = false, direita = false, cima = false, baixo = false,menu=true,gameover=false; //botoes para mover o personagem
 float personX = 0.85, personY=0.0,personZ = 0.83,raioPerson=0.07; //coordenadas iniciais do personagem
 float personComp = 50, personAlt = 30; //comprimento e altura do personagem
 char ch = '1';
@@ -55,7 +55,8 @@ void DefineIluminacao(void);
 void criaEscada(float R,float G,float B);
 void criaQuadrado(float x);
 void criaPersonagens(void);
-void criaMenu(void);
+void menuPrincipal(void);
+void menuGameOver(void);
 void drawModel(char *fname);
 void drawMode2(char *fname);
 void drawMode3(char *fname);
@@ -193,19 +194,38 @@ void init(void)
 }
 
 void GerenciaMouse(int button, int state, int x, int y){
+	Retangulo r;
   	if (button == GLUT_LEFT_BUTTON)
          if (state == GLUT_DOWN) {
          	if(menu){
-         	Retangulo r;
-         	r.x=500;
-         	r.y=350;
-         	r.largura=400;
-         	r.altura=200;
-         	
-         	if(colisaoQP(r,x,y))
-   				menu=false;
-	   }
-         }
+	         	r.x=500;//centroide (no centro em relação a funcao gerencia mouse)
+	         	r.y=350; //coordenada do centro  (0.0,0.0) é o msm (500,350) neste caso!
+	         	r.largura=400;
+	         	r.altura=200;
+	         	
+	         	if(colisaoQP(r,x,y))
+	   				menu=false;
+	   	   }
+	       else if(gameover){
+	       		r.x=500;//centroide do tentar novamente
+	       		r.y=310;
+	       		r.largura=240;
+	       		r.altura=90;
+	       		if(colisaoQP(r,x,y)){
+	       			gameover=false;
+	       			PlaySound(TEXT("../audios/background.wav"), NULL, SND_ASYNC|SND_LOOP); 
+				}
+	       		else{
+	       			r.x=500;//centroide do sair
+	       			r.y=360;
+	       			r.largura=80;
+	       			r.altura=30;
+	       			if(colisaoQP(r,x,y)){
+						exit(0);	   
+					}
+				}
+	       }
+       }
     glutPostRedisplay();
 }
 
@@ -258,8 +278,17 @@ void timer_callback(int value){
     for(int i = 0; i < qte_barris; i++) {
 		if(colisao(barris[i].x, barris[i].y, barris[i].z, barris[i].raio,personX,personY,personZ,raioPerson)){
 			printf("Perdeu dd");
+			personX = 0.85;//restaura todas coordenadas padrões
+			personY=0.0;
+			personZ = 0.83;
+			cima = false; 
+			baixo = false;
+			pulo=false;
+			gameover=true;
+			qte_barris = 0;
 			PlaySound(TEXT("../audios/perdeu.wav"), NULL, SND_SYNC);
-			exit(0);
+			break;
+			//exit(0);
 		}
 	// }
 	// for(int i = 0; i < qte_barris; i++) {
@@ -287,7 +316,7 @@ void timer_callback(int value){
 		}   	
 		if(flag == 0){//entao ? pq o barril colidiu c o bloco proximo a escada
 			barris[i].baixo = true;
-			if(number==0){//restaura os valores de transla??o inicial do barril
+			if(number==0){//restaura os valores de translacao inicial do barril
 			  barris[i].x = 0.2; 
 			  barris[i].y = 0.0;
 			  barris[i].z = -0.65;
@@ -424,12 +453,18 @@ void display(void)
 	glRotatef( rotate_x, 1.0, 0.0, 0.0 );
 	glRotatef( rotate_y, 0.0, 1.0, 0.0 );
 	DefineIluminacao();
-	gluLookAt(0.0f, 0.1f, 0.1f, 0.f, 0.f, 0.f, 0.f, 1.0f, 0.f);//visao da camera
+	gluLookAt(0.0f, 0.1f, 0.1f, 0.f, 0.f, 0.f, 0.f, 1.0f, 0.f);//visao da camera	
+
 	if(menu)
-		criaMenu();
+		menuPrincipal();
 	else{
+		if(gameover){
+			menuGameOver();
+		}
+		else{
 		criaCenario();
-		criaPersonagens();	
+		criaPersonagens();
+		}	
 	}
 
 	glutSwapBuffers();
@@ -798,10 +833,10 @@ void criaCenario() //quantidade de blocos do cenario
 	
 }
 
-void criaMenu(){
+void menuPrincipal(){
 	
 	GLuint texture1,texture2;
-	int w, h,nrChannels;
+	int w, h;
 	unsigned char *uc = stbi_load("../texturas/start.png", &w, &h, NULL, 0);
 	glGenTextures(1, &texture1); //gera nomes identificadores de texturas
 	glBindTexture(GL_TEXTURE_2D, texture1); //Ativa a textura atual
@@ -813,7 +848,7 @@ void criaMenu(){
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-		glPushMatrix();
+    glPushMatrix();
 	glTranslatef( 0, 0, 0);//origem
 	glRotatef(180,0,0,0);//rotacao de 180 graus
 	glScalef(4.5,0,4.5);
@@ -823,7 +858,7 @@ void criaMenu(){
 	stbi_image_free(uc);   
 	
 	
-	unsigned char *uc2 = stbi_load("../texturas/dklogo.png", &w, &h, &nrChannels, 0);
+	unsigned char *uc2 = stbi_load("../texturas/dklogo.png", &w, &h, NULL, 0);
 	glGenTextures(1, &texture2); //gera nomes identificadores de texturas
 	glBindTexture(GL_TEXTURE_2D, texture2); //vincula a textura atual
 
@@ -836,7 +871,7 @@ void criaMenu(){
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
 	glPushMatrix();
-	glTranslatef(0, 0, -0.9);//origem
+	glTranslatef(0, 0, -0.9);
 	glRotatef(180,0,0,0);//rotacao de 180 graus
 	glScalef(4.5,0,4.5);
 	criaQuadrado(0.09);
@@ -845,6 +880,55 @@ void criaMenu(){
 	stbi_image_free(uc2);
 	
 }
+
+void menuGameOver(){
+	GLuint texture1,texture2;
+	int w, h;
+	unsigned char *uc = stbi_load("../texturas/gameover.png", &w, &h, NULL, 0);
+	glGenTextures(1, &texture1); //gera nomes identificadores de texturas
+	glBindTexture(GL_TEXTURE_2D, texture1); //Ativa a textura atual
+
+	//Cria a textura com o nome game over
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h,
+				 0, GL_RGB, GL_UNSIGNED_BYTE, uc);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+		glPushMatrix();
+	glTranslatef( 0, 0, -1);
+	glRotatef(180,0,0,0);//rotacao de 180 graus
+	glScalef(5.5,0,5.5);
+	criaQuadrado(0.09);
+	glPopMatrix();
+    glDeleteTextures(1, &texture1);
+	stbi_image_free(uc);
+	
+	unsigned char *uc2 = stbi_load("../texturas/telagamerover.png", &w, &h, NULL, 0);
+	glGenTextures(1, &texture2); //gera nomes identificadores de texturas
+	glBindTexture(GL_TEXTURE_2D, texture2); //Ativa a textura atual
+
+	//Cria a textura do menu Game Over
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h,
+				 0, GL_RGB, GL_UNSIGNED_BYTE, uc2);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+	glPushMatrix();
+	glTranslatef( 0, 0, 0);//origem
+	glRotatef(180,0,0,0);//rotacao de 180 graus
+	glScalef(4.5,0,4.5);
+	criaQuadrado(0.09);
+	glPopMatrix();
+    glDeleteTextures(1, &texture2);
+	stbi_image_free(uc2);
+	
+	gameover=true;
+	
+	  
+}
+
 
 void criaEscada(float R,float G ,float B) //Cria as escadas do cen?rio
 {
