@@ -4,7 +4,6 @@
 //*********************************************************************
 
 // Bibliotecas utilizadas pelo OpenGL
-//#include <GL/glew.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glut.h>
@@ -20,24 +19,27 @@
 #define quantEscadas 4 //indica a quantidade de escadas do cenário
 #define BLOCOS 45 //quantidade de blocos da fase(por onde o personagem vai andar)
 #include <string>
-// using namespace std;
+
 //Variaveis Globais usadas para definicao de cores
 float R, G, B;
-bool esquerda = false, direita = false, cima = false, baixo = false, menu = true, gameover = false; //botoes para mover o personagem
+
+bool cima = false, baixo = false, menu = true, gameover = false; //botoes para mover o personagem
+
 float personX = 0.85, personY = 0.0, personZ = 0.83, raioPerson = 0.07; //coordenadas iniciais do personagem
-float personComp = 50, personAlt = 30; //comprimento e altura do personagem
-char ch = '1';
-int numerobarril = -1;
-int flagColisaoEP = 0;
-GLMmodel* pmodel = NULL;
-GLMmodel* pmode2 = NULL;
-GLMmodel* pmode3 = NULL;
-bool pulo = false;
-int contPulo = 0,contPrincesa=0,anguloPrincesa=180;
+
+GLMmodel * pmodel = NULL; //carrega um objeto
+GLMmodel * pmode2 = NULL; //carrega um objeto
+GLMmodel * pmode3 = NULL; //carrega um objeto
+bool pulo = false; //variável para controlar o pulo do personagem
+
+int contPulo = 0; //Variável para controlar a translacao do personagem ao pular
+
+int contPrincesa = 0, anguloPrincesa = 180; //variáveis para controlar a rotacao da princesa
 //barril vari?veis
+
 float raioBarril = 0.05; //coordenadas iniciais do barril
 float velocidadesBarril[3] = {0.015 , 0.020, 0.025}; //Vetor que é usado para definir a velocidade do barril
-typedef struct Retangulo;
+typedef struct Retangulo;  //struct para auxiliar na textura das figuras dos menus
 
 // Declaracoes forward das funcoes utilizadas
 void init(void);
@@ -55,17 +57,16 @@ void criaQuadrado(float x);
 void criaPersonagens(void);
 void menuPrincipal(void);
 void menuGameOver(void);
-void drawModel(char *fname);
-void drawMode2(char *fname);
-void drawMode3(char *fname);
+void drawModel(char * fname);
+void drawMode2(char * fname);
+void drawMode3(char * fname);
 void timer_callback(int value);
 bool colisao(float x1, float y1, float z1, float raio1, float x2, float y2, float z2, float raio2); //colisao esfera esfera
 bool colisaoEP(float x1, float y1 , float z1, float altura, float largura, float profundidade, float x2, float y2, float z2, float raio2); //colisao esfera e paralelepipedo
 bool colisaoQP(Retangulo figura, float x_clique, float y_clique); //olha se um ponto(clique) está dentro de um quadrilatero (colisao quadriátero e ponto)
 
 
-struct Escada
-{
+struct Escada {
 	float x;
 	float y;
 	float z;
@@ -75,8 +76,7 @@ struct Escada
 
 };
 
-typedef struct BlocoTeste
-{
+typedef struct BlocoTeste {
 	float x;
 	float y;
 	float z;
@@ -84,15 +84,8 @@ typedef struct BlocoTeste
 	bool colide;
 } tBloco;
 
-struct Vertex
-{
-	float pos[3];
-	float color[3];
-	float texCoord[3];
-};
 
-typedef struct Barril
-{
+typedef struct Barril {
 	float x;
 	float y;
 	float z;
@@ -105,8 +98,7 @@ typedef struct Barril
 	bool baixo;
 } tBarril;
 
-typedef struct Retangulo
-{
+typedef struct Retangulo {
 	float x;
 	float y;
 	float altura;
@@ -120,15 +112,16 @@ tBloco buracos[3];  //vetor que indica os buracos do cenário
 tBarril barris[20]; //vetor dos barris do cenário
 int qte_barris = 0;  //variável que indica a quantidade atual de barris
 int intervalo = 0; //variável usada para saber a quantidade de vezes que da função display foi chamada
+
+//variaveis usadas para rotacionar a tela durante o desenvolvimento do trabalho
 double rotate_y = 0;
 double rotate_x = 0;
 
 
 // Funcao Principal do C
-int main(int argc, char** argv)
-{
+int main(int argc, char * * argv) {
 
-	glutInit(&argc, argv); // Passagens de parametros C para o glut
+	glutInit( & argc, argv); // Passagens de parametros C para o glut
 	glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH); // Selecao do Modo do Display e do Sistema de cor utilizado
 	glutInitWindowSize (1000, 700);  // Tamanho da janela do OpenGL
 	glutInitWindowPosition (100, 100); //Posicao inicial da janela do OpenGL
@@ -152,8 +145,7 @@ int main(int argc, char** argv)
 
 
 // Funcao com alguns comandos para a inicializacao do OpenGL;
-void init(void)
-{
+void init(void) {
 	PlaySound(TEXT("../audios/background.wav"), NULL, SND_ASYNC | SND_LOOP);  //Inicia o áudio de fundo do jogo
 	srand(time(NULL));//função para o random
 	tBarril b; //criando o primeiro barril
@@ -168,9 +160,9 @@ void init(void)
 	b.direita = false;
 	b.baixo = false;
 	barris[qte_barris++] = b; //coloca o barril no vetor e incrementa a quantiade de barris
-	// Habilita a defini??o da cor do material a partir da cor corrente
 	//
 	glEnable(GL_FOG);
+	// Habilita a defini??o da cor do material a partir da cor corrente
 	glEnable(GL_COLOR_MATERIAL);
 	//Habilita o uso de ilumina??o
 	glEnable(GL_LIGHTING);
@@ -179,7 +171,7 @@ void init(void)
 	// Habilita o depth-buffering
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
-	//glEnable(GL_BLEND);
+	glEnable(GL_BLEND);
 
 
 	/* Activa o modelo de sombreagem de "Gouraud". */
@@ -189,47 +181,37 @@ void init(void)
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_TEXTURE_2D);
 
-	glutTimerFunc(30, timer_callback, 30);
+	glutTimerFunc(30, timer_callback, 30); //define a funcao a ser chamada a cada 30 milisegundos
 }
 
-void GerenciaMouse(int button, int state, int x, int y)
-{
+void GerenciaMouse(int button, int state, int x, int y) {
 	Retangulo r;
 	if (button == GLUT_LEFT_BUTTON)
-		if (state == GLUT_DOWN)
-		{
-			if(menu)
-			{
+		if (state == GLUT_DOWN) {
+			if(menu) {
 				r.x = 500; //centroide (no centro em relação a funcao gerencia mouse)
 				r.y = 350; //coordenada do centro  (0.0,0.0) é o msm (500,350) neste caso!
 				r.largura = 400;
 				r.altura = 200;
 
-				if(colisaoQP(r, x, y))
-				{
+				if(colisaoQP(r, x, y)) {
 					menu = false;
 					PlaySound(TEXT("../audios/background.wav"), NULL, SND_ASYNC | SND_LOOP);
 				}
-			}
-			else if(gameover)
-			{
+			} else if(gameover) {
 				r.x = 500; //centroide do tentar novamente
 				r.y = 310;
 				r.largura = 240;
 				r.altura = 90;
-				if(colisaoQP(r, x, y))
-				{
+				if(colisaoQP(r, x, y)) {
 					gameover = false;
 					PlaySound(TEXT("../audios/background.wav"), NULL, SND_ASYNC | SND_LOOP);
-				}
-				else
-				{
+				} else {
 					r.x = 500; //centroide do sair
 					r.y = 360;
 					r.largura = 80;
 					r.altura = 30;
-					if(colisaoQP(r, x, y))
-					{
+					if(colisaoQP(r, x, y)) {
 						exit(0);
 					}
 				}
@@ -238,8 +220,7 @@ void GerenciaMouse(int button, int state, int x, int y)
 	glutPostRedisplay();
 }
 
-void reshape(int w, int h)
-{
+void reshape(int w, int h) {
 
 	// Reinicializa o sistema de coordenadas
 	glMatrixMode(GL_PROJECTION);
@@ -249,30 +230,14 @@ void reshape(int w, int h)
 	glViewport(0, 0, w, h);
 
 	glOrtho (0, 512, 0, 512, -1 , 1); // Define o volume de projecao ortografica;
-	// Nesse caso o ponto (0,0,0) se encontra no
-	// canto inferior esquerdo da tela e o viewport
-	// tem 0 a 512 pixel no eixo x, 0 a 512 pixel no
-	// eixo y. Como sera trabalhado imagens 2D definimos
-	// o eixo z com tamanho -1 a 1;
-
-//   glOrtho (-256, 256, -256, 256, -1 ,1);  // Neste caso, continuamos com 512 pixels, porem o
-	// centro dos eixos passa a se localizar no centro
-	// da tela.
-
-//   glOrtho (-(w/2), (w/2),-(h/2),(h/2), -1 ,1); // Nesse caso, ficamos com a quantidade de pixels variavel,
-	// dependente da largura e altura da janela, e o
-	// centro dos eixos continua a se localizar no centro
-	// da tela.
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 }
 
 
 // Funcao usada na funcao callback para controlar as teclas comuns (1 Byte) do teclado
-void keyboard(unsigned char key, int x, int y)
-{
-	switch (key)   // key - variavel que possui valor ASCII da tecla precionada
-	{
+void keyboard(unsigned char key, int x, int y) {
+	switch (key) { // key - variavel que possui valor ASCII da tecla precionada
 	case 27: // codigo ASCII da tecla ESC
 		exit(0); // comando pra finalizacao do programa
 		break;
@@ -282,13 +247,11 @@ void keyboard(unsigned char key, int x, int y)
 	}
 }
 
-void timer_callback(int value)
-{
+void timer_callback(int value) {
 	glutTimerFunc(value, timer_callback, value);
-	for(int i = 0; i < qte_barris; i++)
-	{
-		if(colisao(barris[i].x, barris[i].y, barris[i].z, barris[i].raio, personX, personY, personZ, raioPerson))
-		{
+	//Verifica se o personagem colidiu com um dos barris
+	for(int i = 0; i < qte_barris; i++) {
+		if(colisao(barris[i].x, barris[i].y, barris[i].z, barris[i].raio, personX, personY, personZ, raioPerson)) {
 			printf("Perdeu dd");
 			personX = 0.85;//restaura todas coordenadas padrões
 			personY = 0.0;
@@ -301,42 +264,30 @@ void timer_callback(int value)
 			qte_barris = 0;
 			PlaySound(TEXT("../audios/perdeu.wav"), NULL, SND_SYNC);
 			break;
-			//exit(0);
-		} 
-		// }
-		// for(int i = 0; i < qte_barris; i++) {
-		if(barris[i].x <= -1)
-		{
+		}
+		if(barris[i].x <= -1) {
 			barris[i].esquerda = false;
 			barris[i].direita = true;
 			barris[i].baixo = false;
 		}
-		if(barris[i].x >= 1)
-		{
+		if(barris[i].x >= 1) {
 			barris[i].esquerda = true;
 			barris[i].direita = false;
 			barris[i].baixo = false;
 		}
-		// }
-		// for(int i = 0; i < qte_barris; i++) {
 		int flag = 0, number = -1;
-		for(int j = 0; j < 45; j ++) //verifica quando o barril vai descendo
-		{
-			if(blocks[j].colide && colisao(blocks[j].x, blocks[j].y, blocks[j].z, blocks[j].raio, barris[i].x, barris[i].y, barris[i].z, barris[i].raio) )
-			{
+		for(int j = 0; j < 45; j ++) { //verifica quando o barril vai descendo
+			if(blocks[j].colide && colisao(blocks[j].x, blocks[j].y, blocks[j].z, blocks[j].raio, barris[i].x, barris[i].y, barris[i].z, barris[i].raio) ) {
 				flag = 1;
 				break;
 			}
-			if(j == 0 && !blocks[j].colide && colisao(blocks[j].x, blocks[j].y, blocks[j].z, blocks[j].raio, barris[i].x, barris[i].y, barris[i].z, barris[i].raio) )
-			{
+			if(j == 0 && !blocks[j].colide && colisao(blocks[j].x, blocks[j].y, blocks[j].z, blocks[j].raio, barris[i].x, barris[i].y, barris[i].z, barris[i].raio) ) {
 				number = 0;
 			}
 		}
-		if(flag == 0) //entao ? pq o barril colidiu c o bloco proximo a escada
-		{
+		if(flag == 0) { //entao ? pq o barril colidiu c o bloco proximo a escada
 			barris[i].baixo = true;
-			if(number == 0) //restaura os valores de translacao inicial do barril
-			{
+			if(number == 0) { //restaura os valores de translacao inicial do barril
 				barris[i].x = 0.2;
 				barris[i].y = 0.0;
 				barris[i].z = -0.65;
@@ -347,14 +298,12 @@ void timer_callback(int value)
 		}
 
 	}
-	if(!pulo)
-		for(int i = 0; i < 3; i++) //buracos
-		{
+	if(!pulo) //se nao pulou, verifica se colidiu com um buraco
+		for(int i = 0; i < 3; i++) { //buracos
 			if(colisaoEP(buracos[i].x, buracos[i].y, buracos[i].z, buracos[i].raio * 2 + 0.25, 0.06, 0.08, personX, personY, personZ, raioPerson))
 				personZ += 0.035;
 		}
-	if(colisao(0.23, 0.02, -1.21, 0.07, personX, personY, personZ, raioPerson))
-	{
+	if(colisao(0.23, 0.02, -1.21, 0.07, personX, personY, personZ, raioPerson)) { //verifica se colidiu com a princesa
 		printf("Ganhou dd");
 		PlaySound(TEXT("../audios/ganhou.wav"), NULL, SND_ASYNC);
 		personX = 0.85;//restaura todas coordenadas padrões
@@ -364,7 +313,7 @@ void timer_callback(int value)
 		cima = false;
 		baixo = false;
 		pulo = false;
-		menu = true;
+		menu = true;  //se ganhou, reinicia o menu
 		qte_barris = 0;
 		menuPrincipal();
 
@@ -376,11 +325,9 @@ void timer_callback(int value)
 
 //Funcao para controlar as teclas especiais (2 Byte) do teclado
 int flag1 = 0;
-void keyboard_special(int key, int x, int y)
-{
+void keyboard_special(int key, int x, int y) {
 
-	switch(key)
-	{
+	switch(key) {
 		//  Rotacao 5 graus esquerda
 	case GLUT_KEY_F1:
 		rotate_y += 5;
@@ -403,29 +350,24 @@ void keyboard_special(int key, int x, int y)
 		glutPostRedisplay();
 		break;
 	case GLUT_KEY_LEFT://seta esquerda
-		esquerda = true;
-		if(cima || baixo)
+		if(cima || baixo) //evita que o personagem se movimente na horizontal se ele estiver subindo uma escada
 			break;
 		if(personX > -1)
 			personX -= 0.035;
 		glutPostRedisplay();
 		break;
 	case GLUT_KEY_RIGHT://seta direita
-		if(cima || baixo)
+		if(cima || baixo) //evita que o personagem se movimente na horizontal se ele estiver subindo uma escada
 			break;
-		direita = true;
-		//if(personX < 1)
-		personX += 0.035;
+		if(personX < 1)
+			personX += 0.035;
 		glutPostRedisplay();
 		break;
 	case GLUT_KEY_UP://seta cima
 		flag1 = 0;
-		if(!pulo)
-		{
-			for(int i = 0; i < quantEscadas; i++) //verifica se h? colis?o com a escada e personagem
-			{
-				if (colisaoEP(escadas[i].x, escadas[i].y, escadas[i].z, escadas[i].altura, escadas[i].largura, escadas[i].profundidade, personX, personY, personZ, raioPerson))
-				{
+		if(!pulo) {  // se subiu e nao pulou, verifica se colidiu com a escada
+			for(int i = 0; i < quantEscadas; i++) { //verifica se h? colis?o com a escada e personagem
+				if (colisaoEP(escadas[i].x, escadas[i].y, escadas[i].z, escadas[i].altura, escadas[i].largura, escadas[i].profundidade, personX, personY, personZ, raioPerson)) {
 					personZ -= 0.035;
 					cima = true;
 					baixo = false;
@@ -441,31 +383,24 @@ void keyboard_special(int key, int x, int y)
 
 
 	case GLUT_KEY_DOWN://seta baixo
-		for(int i = 1; i < 45; i++)
-		{
-			if(blocks[i].colide && colisao(blocks[i].x, blocks[i].y, blocks[i].z, blocks[i].raio, personX, personY, personZ, raioPerson))
-			{
+		for(int i = 1; i < 45; i++) {
+			if(blocks[i].colide && colisao(blocks[i].x, blocks[i].y, blocks[i].z, blocks[i].raio, personX, personY, personZ, raioPerson)) {
 				cima = false;
 				baixo = false;
 			}
-			if(!blocks[i].colide && (i==21 || i==22) && colisaoEP(blocks[i].x, blocks[i].y, blocks[i].z, 0.18*2+0.09,0.18,0.18, personX, personY, personZ, raioPerson))
-			{
+			if(!blocks[i].colide && (i == 21 || i == 22) && colisaoEP(blocks[i].x, blocks[i].y, blocks[i].z, 0.18 * 2 + 0.09, 0.18, 0.18, personX, personY, personZ, raioPerson)) {
 
 				personZ += 0.035;
 				baixo = true;
 				cima = false;
 				break;
-			}
-			else if(!blocks[i].colide && (i==24) && colisaoEP(blocks[i].x, blocks[i].y, blocks[i].z, 0.18*2+0.12,0.05,0.18, personX, personY, personZ, raioPerson))
-			{
+			} else if(!blocks[i].colide && (i == 24) && colisaoEP(blocks[i].x, blocks[i].y, blocks[i].z, 0.18 * 2 + 0.12, 0.05, 0.18, personX, personY, personZ, raioPerson)) {
 
 				personZ += 0.035;
 				baixo = true;
 				cima = false;
 				break;
-			}
-			else if(!blocks[i].colide && (i==43) && colisaoEP(blocks[i].x, blocks[i].y, blocks[i].z, 0.18*2+0.13,0.05,0.18, personX, personY, personZ, raioPerson))
-			{
+			} else if(!blocks[i].colide && (i == 43) && colisaoEP(blocks[i].x, blocks[i].y, blocks[i].z, 0.18 * 2 + 0.13, 0.05, 0.18, personX, personY, personZ, raioPerson)) {
 
 				personZ += 0.035;
 				baixo = true;
@@ -491,8 +426,7 @@ GLfloat angulo = 0.0f;
 
 
 // Funcao usada na funcao callback para desenhar na tela
-void display(void)
-{
+void display(void) {
 
 
 	/* Apaga o video e o depth buffer, e reinicia a matriz */
@@ -507,26 +441,20 @@ void display(void)
 
 	if(menu)
 		menuPrincipal();
-	else
-	{
-		if(gameover)
-		{
+	else {
+		if(gameover) {
 			menuGameOver();
-		}
-		else
-		{
+		} else {
 			criaCenario();
 			criaPersonagens();
 		}
 	}
-
-	glutSwapBuffers();
 	intervalo += 1;
+	glutSwapBuffers();
 }
 
 
-void criaCubo(float x)
-{
+void criaCubo(float x) {
 	int contador = 0;
 	// Desenhas as linhas das "bordas" do cubo
 	glColor3f(0.0f, 0.0f, 0.0f);
@@ -616,7 +544,7 @@ void criaCubo(float x)
 	glVertex3f(x, x, x);
 	glColor3f(1.0f, 1.0f, 1.0f);
 	glVertex3f(x, x, -x);
-	// Face inferior
+	
 	glNormal3f(0.0, -1.0, 0.0);
 	glColor3f(0.0f, 0.0f, 1.0f);
 	glVertex3f(-x, -x, -x);
@@ -633,8 +561,7 @@ void criaCubo(float x)
 	glEnd();
 }
 
-void DefineIluminacao (void)
-{
+void DefineIluminacao (void) {
 
 	GLfloat posLuz[4] = { -0.2, -0.2, -1.0, 1.0 };// Posi??o da fonte de luz
 	GLfloat luzAmbiente[4] = {1.0, 1.0, 1.0, 1.0};
@@ -676,14 +603,13 @@ void DefineIluminacao (void)
 
 
 
-void criaCenario() //quantidade de blocos do cenario
-{
+void criaCenario() { //quantidade de blocos do cenario
 	float c = 1;
 	GLuint texture1, texture2;
 
 	int w, h;
-	unsigned char *uc = stbi_load("../texturas/donkey_kong_arcade.jpg", &w, &h, NULL, 0);
-	glGenTextures(1, &texture1); //gera nomes identificadores de texturas
+	unsigned char * uc = stbi_load("../texturas/donkey_kong_arcade.jpg", & w, & h, NULL, 0);
+	glGenTextures(1, & texture1); //gera nomes identificadores de texturas
 	glBindTexture(GL_TEXTURE_2D, texture1); //Ativa a textura atual
 
 	//Cria a textura lateral de cada bloco
@@ -697,24 +623,18 @@ void criaCenario() //quantidade de blocos do cenario
 
 	int auxiliar = 0;
 	tBloco b;
-	for (int k = 0; k < 5; k++) //numero de andares 'k'
-	{
+	for (int k = 0; k < 5; k++) { //numero de andares 'k'
 		int BLOCKS = 12;
-		for(int i = 0; i < BLOCKS; i++)//numero de blocos em cada andar 'i'
-		{
+		for(int i = 0; i < BLOCKS; i++) { //numero de blocos em cada andar 'i'
 			float tx, ty, tz;
 			float x = 0, y = 0, z = 0;
 			glPushMatrix();
-			if(k == 0 || (k < 4 && i < 11) || (k == 4 && i > 3 && i < 6))
-			{
-				if(k % 2 == 0)
-				{
+			if(k == 0 || (k < 4 && i < 11) || (k == 4 && i > 3 && i < 6)) {
+				if(k % 2 == 0) {
 					tx = c;
 					ty = 0.0;
 					tz = 1 - 0.5 * k;
-				}
-				else
-				{
+				} else {
 					tx = - 0.2 + c;
 					ty = 0.0;
 					tz = 1 - 0.5 * k;
@@ -726,30 +646,24 @@ void criaCenario() //quantidade de blocos do cenario
 				b.y = ty;
 				b.z = tz;
 				b.raio = 0.12;
-				if(k == 0)
-				{
+				if(k == 0) {
 					if(i == 0)
 						b.colide = false;
 					else
 						b.colide = true;
-				}
-				else if(k == 1)
-				{
+				} else if(k == 1) {
 					if(i == BLOCKS - 2 || i == BLOCKS - 3)
 						b.colide = false;
 					else
 						b.colide = true;
-				}
-				else if(k == 2)
-				{
+				} else if(k == 2) {
 					if(i < 2)
 						b.colide = false;
 					else
 						b.colide = true;
 				}
 
-				else if(k == 3)
-				{
+				else if(k == 3) {
 					if(i == BLOCKS - 2 || i == BLOCKS - 3)
 						b.colide = false;
 					else
@@ -757,29 +671,22 @@ void criaCenario() //quantidade de blocos do cenario
 				}
 				blocks[auxiliar] = b;
 				auxiliar++;
-			}
-			else
-			{
-				if(k == 1)
-				{
+			} else {
+				if(k == 1) {
 					b.x = 1.0;
 					b.y = 0.0;
 					b.z = 0.5;
 					b.raio = 0.12;
 					b.colide = false;
 					buracos[0] = b;
-				}
-				else if(k == 2)
-				{
+				} else if(k == 2) {
 					b.x = -0.98;
 					b.y = 0.0;
 					b.z = 0.0;
 					b.raio = 0.12;
 					b.colide = false;
 					buracos[1] = b;
-				}
-				else if(k == 3)
-				{
+				} else if(k == 3) {
 					b.x = 1;
 					b.y = 0.0;
 					b.z = -0.5;
@@ -796,13 +703,13 @@ void criaCenario() //quantidade de blocos do cenario
 		c = 1;
 	}
 	//glDisable(GL_TEXTURE_2D);  //desativa a textura dos blocos
-	glDeleteTextures(1, &texture1);
+	glDeleteTextures(1, & texture1);
 	stbi_image_free(uc);
 
 	criaEscada(0.59, 0.29, 0.0);
 
-	unsigned char *uc3 = stbi_load("../texturas/barril.jpg", &w, &h, NULL, 0);
-	glGenTextures(1, &texture2); //gera nomes identificadores de texturas
+	unsigned char * uc3 = stbi_load("../texturas/barril.jpg", & w, & h, NULL, 0);
+	glGenTextures(1, & texture2); //gera nomes identificadores de texturas
 	glBindTexture(GL_TEXTURE_2D, texture2); //Ativa a textura atual
 	//Cria a textura de cada barril
 
@@ -814,11 +721,10 @@ void criaCenario() //quantidade de blocos do cenario
 
 
 	//barril
-	GLUquadric *quad = gluNewQuadric(); //cria um quadrado
+	GLUquadric * quad = gluNewQuadric(); //cria um quadrado
 	gluQuadricNormals(quad, GLU_FLAT); //FLAT significa uma normal para cada face do quadrado
 	gluQuadricOrientation(quad, GLU_INSIDE); //vetor da normal apontando p dentro
-	for(int barril = 0, fator = 0; barril < 4; barril++, fator++)   //barril proximo ao macaco
-	{
+	for(int barril = 0, fator = 0; barril < 4; barril++, fator++) { //barril proximo ao macaco
 		glPushMatrix();
 		glColor3f(0.0f, 0.0f, 0.0f);//cor do objeto verde
 		glRotatef(90, 1.0f, 0.0f, 0.0f);//rota??o
@@ -834,9 +740,7 @@ void criaCenario() //quantidade de blocos do cenario
 		glPopMatrix();
 
 	}
-
-	if(intervalo % 200 == 0 && qte_barris < 6)
-	{
+	if(intervalo % 200 == 0 && qte_barris < 6) {
 		srand(time(NULL));
 		tBarril b;
 		b.x = 0.2;
@@ -852,8 +756,7 @@ void criaCenario() //quantidade de blocos do cenario
 		barris[qte_barris++] = b;
 	}
 
-	for(int i = 0; i < qte_barris; i ++)
-	{
+	for(int i = 0; i < qte_barris; i ++) {
 
 		glPushMatrix();//barril em movimento
 		glColor3f(0.0f, 0.0f, 0.0f);//cor do objeto verde
@@ -866,8 +769,7 @@ void criaCenario() //quantidade de blocos do cenario
 			barris[i].x -= barris[i].velX;
 		if(barris[i].direita)
 			barris[i].x += barris[i].velX;
-		if(barris[i].baixo)
-		{
+		if(barris[i].baixo) {
 			barris[i].z += barris[i].velZ;
 			barris[i].baixo = false;
 		}
@@ -875,7 +777,7 @@ void criaCenario() //quantidade de blocos do cenario
 		barris[i].rotacao = - barris[i].rotacao;  //constante em qualquer situa??o
 
 	}
-	glDeleteTextures(1, &texture2);
+	glDeleteTextures(1, & texture2);
 	stbi_image_free(uc3);
 	//glDisable(GL_TEXTURE_2D);//desativa a textura do barril
 
@@ -885,15 +787,13 @@ void criaCenario() //quantidade de blocos do cenario
 	glTranslatef(personX, personY, personZ);
 	glutSolidSphere(raioPerson, 30, 30);
 	glPopMatrix();
-	if (pulo)
-	{
+	if (pulo) {
 		contPulo += 1;
 		if (contPulo <= 15) //numero de frames
 			personZ -= 0.010;
 		else if(contPulo > 15 && contPulo <= 30)
 			personZ += 0.010;
-		else
-		{
+		else {
 			contPulo = 0;
 			pulo = false;
 		}
@@ -901,13 +801,12 @@ void criaCenario() //quantidade de blocos do cenario
 
 }
 
-void menuPrincipal()
-{
+void menuPrincipal() {
 
 	GLuint texture1, texture2;
 	int w, h;
-	unsigned char *uc = stbi_load("../texturas/start.png", &w, &h, NULL, 0);
-	glGenTextures(1, &texture1); //gera nomes identificadores de texturas
+	unsigned char * uc = stbi_load("../texturas/start.png", & w, & h, NULL, 0);
+	glGenTextures(1, & texture1); //gera nomes identificadores de texturas
 	glBindTexture(GL_TEXTURE_2D, texture1); //Ativa a textura atual
 
 	//Cria a textura do menu
@@ -923,12 +822,12 @@ void menuPrincipal()
 	glScalef(4.5, 0, 4.5);
 	criaQuadrado(0.09);
 	glPopMatrix();
-	glDeleteTextures(1, &texture1);
+	glDeleteTextures(1, & texture1);
 	stbi_image_free(uc);
 
 
-	unsigned char *uc2 = stbi_load("../texturas/dklogo.png", &w, &h, NULL, 0);
-	glGenTextures(1, &texture2); //gera nomes identificadores de texturas
+	unsigned char * uc2 = stbi_load("../texturas/dklogo.png", & w, & h, NULL, 0);
+	glGenTextures(1, & texture2); //gera nomes identificadores de texturas
 	glBindTexture(GL_TEXTURE_2D, texture2); //vincula a textura atual
 
 	//Cria a textura com o nome donkey kong
@@ -945,17 +844,16 @@ void menuPrincipal()
 	glScalef(4.5, 0, 4.5);
 	criaQuadrado(0.09);
 	glPopMatrix();
-	glDeleteTextures(1, &texture2);
+	glDeleteTextures(1, & texture2);
 	stbi_image_free(uc2);
 
 }
 
-void menuGameOver()
-{
+void menuGameOver() {
 	GLuint texture1, texture2;
 	int w, h;
-	unsigned char *uc = stbi_load("../texturas/gameover.png", &w, &h, NULL, 0);
-	glGenTextures(1, &texture1); //gera nomes identificadores de texturas
+	unsigned char * uc = stbi_load("../texturas/gameover.png", & w, & h, NULL, 0);
+	glGenTextures(1, & texture1); //gera nomes identificadores de texturas
 	glBindTexture(GL_TEXTURE_2D, texture1); //Ativa a textura atual
 
 	//Cria a textura com o nome game over
@@ -971,11 +869,11 @@ void menuGameOver()
 	glScalef(5.5, 0, 5.5);
 	criaQuadrado(0.09);
 	glPopMatrix();
-	glDeleteTextures(1, &texture1);
+	glDeleteTextures(1, & texture1);
 	stbi_image_free(uc);
 
-	unsigned char *uc2 = stbi_load("../texturas/telagamerover.png", &w, &h, NULL, 0);
-	glGenTextures(1, &texture2); //gera nomes identificadores de texturas
+	unsigned char * uc2 = stbi_load("../texturas/telagamerover.png", & w, & h, NULL, 0);
+	glGenTextures(1, & texture2); //gera nomes identificadores de texturas
 	glBindTexture(GL_TEXTURE_2D, texture2); //Ativa a textura atual
 
 	//Cria a textura do menu Game Over
@@ -991,7 +889,7 @@ void menuGameOver()
 	glScalef(4.5, 0, 4.5);
 	criaQuadrado(0.09);
 	glPopMatrix();
-	glDeleteTextures(1, &texture2);
+	glDeleteTextures(1, & texture2);
 	stbi_image_free(uc2);
 
 	gameover = true;
@@ -1000,8 +898,7 @@ void menuGameOver()
 }
 
 
-void criaEscada(float R, float G , float B) //Cria as escadas do cen?rio
-{
+void criaEscada(float R, float G , float B) { //Cria as escadas do cen?rio
 	Escada e;
 
 	//cria 4 escadas
@@ -1019,6 +916,7 @@ void criaEscada(float R, float G , float B) //Cria as escadas do cen?rio
 	glRotatef(180, 0.0f, 1.0f, -1.2f);//rotacao
 	drawMode3("../models/Tritix1.obj");
 	glPopMatrix();
+
 	glPushMatrix();
 	glColor3f(R, G, B);
 	glTranslatef( 0.80 , -0.09, 0.16);
@@ -1033,6 +931,7 @@ void criaEscada(float R, float G , float B) //Cria as escadas do cen?rio
 	glRotatef(180, 0.0f, 1.0f, -1.2f);//rotacao
 	drawMode3("../models/Tritix1.obj");
 	glPopMatrix();
+
 	glPushMatrix();
 	glColor3f(R, G, B);
 	glTranslatef( -0.80, -0.1, -0.33);
@@ -1047,6 +946,7 @@ void criaEscada(float R, float G , float B) //Cria as escadas do cen?rio
 	glRotatef(180, 0.0f, 1.0f, -1.2f);//rotacao
 	drawMode3("../models/Tritix1.obj");
 	glPopMatrix();
+
 	glPushMatrix();
 	glColor3f(R, G, B);
 	glTranslatef( 0.25, -0.09, -0.855);
@@ -1061,15 +961,12 @@ void criaEscada(float R, float G , float B) //Cria as escadas do cen?rio
 	glRotatef(180, 0.0f, 1.0f, -1.2f);//rotacao
 	drawMode3("../models/Tritix1.obj");
 	glPopMatrix();
-	glPopMatrix();
 
 }
 
-void drawModel(char *fname)
-{
+void drawModel(char * fname) {
 
-	if (!pmodel)
-	{
+	if (!pmodel) {
 		pmodel = glmReadOBJ(fname);
 		if (!pmodel)
 			exit(0);
@@ -1083,10 +980,8 @@ void drawModel(char *fname)
 
 }
 
-void drawMode2(char *fname)
-{
-	if (!pmode2)
-	{
+void drawMode2(char * fname) {
+	if (!pmode2) {
 		pmode2 = glmReadOBJ(fname);
 		if (!pmode2)
 			exit(0);
@@ -1098,10 +993,8 @@ void drawMode2(char *fname)
 	glmDraw(pmode2, GLM_SMOOTH | GLM_FLAT);
 }
 
-void drawMode3(char *fname)
-{
-	if (!pmode3)
-	{
+void drawMode3(char * fname) {
+	if (!pmode3) {
 		pmode3 = glmReadOBJ(fname);
 		if (!pmode3)
 			exit(0);
@@ -1113,8 +1006,7 @@ void drawMode3(char *fname)
 	glmDraw(pmode3, GLM_SMOOTH | GLM_FLAT);
 }
 
-void criaPersonagens()//personagens(macaco e princesa) e as escadas!
-{
+void criaPersonagens() { //personagens(macaco e princesa) e as escadas!
 
 	//cria macaco
 	glPushMatrix();
@@ -1132,16 +1024,12 @@ void criaPersonagens()//personagens(macaco e princesa) e as escadas!
 	glTranslatef( 0.23, 0.02, -1.21);
 	glScalef(0.1, 0.1, 0.1);
 	glRotatef(180, 0.0f, 1.0f, -0.5f);//rotacao
-	if(contPrincesa<=27){
-		//glRotatef(180, 0.0f, 1.0f, -0.5f);//rotacao
-		glRotatef(anguloPrincesa-5, 0.0f, 1.0f, 0.0f);//rotacao
-		}
-	else if (contPrincesa>27 && contPrincesa<=56){
-		//glRotatef(180, 0.0f, 1.0f, -0.5f);//rotacao
-	   	glRotatef(anguloPrincesa+5, 0.0f, 1.0f, 0.0f);//rotacao
-		   }
-    else
-	   contPrincesa=0;	
+	if(contPrincesa <= 27) {
+		glRotatef(anguloPrincesa - 5, 0.0f, 1.0f, 0.0f); //rotacao
+	} else if (contPrincesa > 27 && contPrincesa <= 56) {
+		glRotatef(anguloPrincesa + 5, 0.0f, 1.0f, 0.0f); //rotacao
+	} else
+		contPrincesa = 0;
 	contPrincesa++;
 	drawMode2("../models/leia.obj");
 	glPopMatrix();
@@ -1149,8 +1037,7 @@ void criaPersonagens()//personagens(macaco e princesa) e as escadas!
 
 }
 
-void criaQuadrado(float x)
-{
+void criaQuadrado(float x) {
 
 	glBegin(GL_QUADS);
 	glColor3f(0.0f, 1.0f, 0.0f);//cor verde do objeto
@@ -1165,8 +1052,7 @@ void criaQuadrado(float x)
 	glEnd();
 }
 //x1,y1,z1,raio 1 coordenadas do 1 elemento e x2,y2,z2,raio 2 coordenadas do 2 elemento
-bool colisao(float x1, float y1, float z1, float raio1, float x2, float y2, float z2, float raio2)
-{
+bool colisao(float x1, float y1, float z1, float raio1, float x2, float y2, float z2, float raio2) {
 	float d = sqrt((- x1 + x2)  * (- x1 +  x2) + (-y1 + y2) * (-y1 + y2) +  ( -z1 + z2) * (-z1 + z2));
 	if(d <= (raio1 + raio2))
 		return true;
@@ -1174,35 +1060,28 @@ bool colisao(float x1, float y1, float z1, float raio1, float x2, float y2, floa
 		return false;
 }
 
-bool colisaoEP(float x1, float y1 , float z1, float altura, float largura, float profundidade, float x2, float y2, float z2, float raio2)
-{
+bool colisaoEP(float x1, float y1 , float z1, float altura, float largura, float profundidade, float x2, float y2, float z2, float raio2) {
 	double sphereXDistance = fabs(x2 - x1);
 	double sphereYDistance = fabs(y2 - y1);//profundidade no caso do jogo
 	double sphereZDistance = fabs(z2 - z1);
 
-	if (sphereXDistance > (largura / 2 + raio2))
-	{
+	if (sphereXDistance > (largura / 2 + raio2)) {
 		return false;
 	}
-	if (sphereYDistance > (profundidade / 2 + raio2))
-	{
+	if (sphereYDistance > (profundidade / 2 + raio2)) {
 		return false;
 	}
-	if (sphereZDistance > (altura / 2 + raio2))
-	{
+	if (sphereZDistance > (altura / 2 + raio2)) {
 		return false;
 	}
 
-	if (sphereXDistance <= (largura / 2))
-	{
+	if (sphereXDistance <= (largura / 2)) {
 		return true;
 	}
-	if (sphereYDistance <= (profundidade / 2))
-	{
+	if (sphereYDistance <= (profundidade / 2)) {
 		return true;
 	}
-	if (sphereZDistance <= (altura / 2))
-	{
+	if (sphereZDistance <= (altura / 2)) {
 		return true;
 	}
 
@@ -1212,8 +1091,7 @@ bool colisaoEP(float x1, float y1 , float z1, float altura, float largura, float
 
 	return (cornerDistance_sq <= (raio2 * raio2));
 }
-bool colisaoQP(Retangulo figura, float x_clique, float y_clique) //colisao quadrado e um ponto qualquer(clique)
-{
+bool colisaoQP(Retangulo figura, float x_clique, float y_clique) { //colisao quadrado e um ponto qualquer(clique)
 	return (abs(figura.x - x_clique) * 2 < (figura.largura )) &&
 		   (abs(figura.y - y_clique) * 2 < (figura.altura));
 }
