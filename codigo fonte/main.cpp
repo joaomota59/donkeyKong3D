@@ -305,7 +305,7 @@ void timer_callback(int value) {
 		}
 	if(colisao(0.23, 0.02, -1.21, 0.07, personX, personY, personZ, raioPerson)) { //verifica se colidiu com a princesa
 		printf("Ganhou dd");
-		PlaySound(TEXT("../audios/ganhou.wav"), NULL, SND_ASYNC);
+		PlaySound(TEXT("../audios/ganhou.wav"), NULL, SND_SYNC);
 		personX = 0.85;//restaura todas coordenadas padrões
 		personY = 0.0;
 		personZ = 0.83;
@@ -455,7 +455,6 @@ void display(void) {
 
 
 void criaCubo(float x) {
-	int contador = 0;
 	// Desenhas as linhas das "bordas" do cubo
 	glColor3f(0.0f, 0.0f, 0.0f);
 	glLineWidth(1.6f);
@@ -567,12 +566,14 @@ void DefineIluminacao (void) {
 	GLfloat luzAmbiente[4] = {1.0, 1.0, 1.0, 1.0};
 	GLfloat luzDifusa[4] = {0.7, 0.7, 0.7, 1.0};
 	GLfloat luzEspecular[4] = {1.0, 1.0, 1.0, 1.0};
-	GLfloat Ka[4] = {0.0, 1.0, 0.2, 0.01},
-					Kd[4] = {0.0, 1.0, 0.8, 0.01},
-							Ks[4] = {0.0, 1.0, 1.0, 0.01},
-									Ke[4] = {0.0, 1.0, 0.0, 0.01},
-											local_viewer[4] = {1.0, 1.0, 1.0, 1.0},
-													two_side[4] = {0.0, 1.0, 0.0, 1.0};
+	// GLfloat Ka[4] = {0.0, 1.0, 0.2, 0.01},
+	// 				Kd[4] = {0.0, 1.0, 0.8, 0.01},
+	// 						Ks[4] = {0.0, 1.0, 1.0, 0.01},
+	// 								Ke[4] = {0.0, 1.0, 0.0, 0.01},
+	// 										local_viewer[4] = {1.0, 1.0, 1.0, 1.0},
+	// 												two_side[4] = {0.0, 1.0, 0.0, 1.0};
+	GLfloat two_side[4] = {0.0, 1.0, 0.0, 1.0};
+	
 	// Capacidade de brilho do material
 	GLfloat especularidade[4] = {1.0, 1.0, 1.0, 1.0};
 	GLint especMaterial = 60;
@@ -627,7 +628,6 @@ void criaCenario() { //quantidade de blocos do cenario
 		int BLOCKS = 12;
 		for(int i = 0; i < BLOCKS; i++) { //numero de blocos em cada andar 'i'
 			float tx, ty, tz;
-			float x = 0, y = 0, z = 0;
 			glPushMatrix();
 			if(k == 0 || (k < 4 && i < 11) || (k == 4 && i > 3 && i < 6)) {
 				if(k % 2 == 0) {
@@ -639,8 +639,6 @@ void criaCenario() { //quantidade de blocos do cenario
 					ty = 0.0;
 					tz = 1 - 0.5 * k;
 				}
-
-				float raio;
 
 				b.x = tx;
 				b.y = ty;
