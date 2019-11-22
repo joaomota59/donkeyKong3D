@@ -257,7 +257,7 @@ void timer_callback(int value) {
 	glutTimerFunc(value, timer_callback, value);
 	//Verifica se o personagem colidiu com um dos barris
 	for(int i = 0; i < qte_barris; i++) {
-		if(flag1==0 || flag3==0){//se nao estiver subindo/descendo na escada
+		if(flag1==0 && flag3==0){//se nao estiver subindo/descendo na escada
 			if(colisao(barris[i].x, barris[i].y, barris[i].z, barris[i].raio, personX, personY, personZ, raioPerson)) {
 				printf("Perdeu dd");
 				personX = 0.85;//restaura todas coordenadas padrões
