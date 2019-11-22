@@ -257,16 +257,16 @@ void timer_callback(int value) {
 	glutTimerFunc(value, timer_callback, value);
 	//Verifica se o personagem colidiu com um dos barris
 	for(int i = 0; i < qte_barris; i++) {
-		if(flag1==0 && flag3==0){//se nao estiver subindo/descendo na escada
+		if(flag1 == 0 && flag3 == 0) { //se nao estiver subindo/descendo na escada
 			if(colisao(barris[i].x, barris[i].y, barris[i].z, barris[i].raio, personX, personY, personZ, raioPerson)) {
 				printf("Perdeu dd");
 				personX = 0.85;//restaura todas coordenadas padrões
 				personY = 0.0;
 				personZ = 0.83;
-				flag1=0;
-				flag2=0;
-				flag3=0;
-				flag4=0;
+				flag1 = 0;
+				flag2 = 0;
+				flag3 = 0;
+				flag4 = 0;
 				contPulo = 0;
 				cima = false;
 				baixo = false;
@@ -275,18 +275,17 @@ void timer_callback(int value) {
 				qte_barris = 0;
 				PlaySound(TEXT("../audios/perdeu.wav"), NULL, SND_SYNC);
 				break;
-					}
-		}
-        else{ //se estiver subindo na escada passa como parametro o raio do person um pouco maior p colidir com o barril
-			if(colisao(barris[i].x, barris[i].y, barris[i].z, barris[i].raio, personX, personY, personZ, raioPerson+0.05)){
+			}
+		} else { //se estiver subindo na escada passa como parametro o raio do person um pouco maior p colidir com o barril
+			if(colisao(barris[i].x, barris[i].y, barris[i].z, barris[i].raio, personX, personY, personZ, raioPerson + 0.05)) {
 				printf("Perdeu dd");
 				personX = 0.85;//restaura todas coordenadas padrões
 				personY = 0.0;
 				personZ = 0.83;
-				flag1=0;
-				flag2=0;
-				flag3=0;
-				flag4=0;
+				flag1 = 0;
+				flag2 = 0;
+				flag3 = 0;
+				flag4 = 0;
 				contPulo = 0;
 				cima = false;
 				baixo = false;
@@ -295,7 +294,7 @@ void timer_callback(int value) {
 				qte_barris = 0;
 				PlaySound(TEXT("../audios/perdeu.wav"), NULL, SND_SYNC);
 				break;
-			}	
+			}
 		}
 
 		if(barris[i].x <= -1) {
@@ -355,7 +354,7 @@ void timer_callback(int value) {
 }
 
 
-bool origem=true;
+bool origem = true;
 //Funcao para controlar as teclas especiais (2 Byte) do teclado
 void keyboard_special(int key, int x, int y) {
 	switch(key) {
@@ -398,26 +397,26 @@ void keyboard_special(int key, int x, int y) {
 		flag1 = 0;
 		if(!pulo) {  // se subiu e nao pulou, verifica se colidiu com a escada
 			for(int i = 0; i < quantEscadas; i++) { //verifica se h? colis?o com a escada e personagem
-					if (colisaoEP(escadas[i].x, escadas[i].y, escadas[i].z, escadas[i].altura, escadas[i].largura, escadas[i].profundidade, personX, personY, personZ, raioPerson)) {
-						personZ -= 0.035;
-						cima = true;
-						baixo = false;
-						flag1 = 1;
-						flag2++;
-						break;
+				if (colisaoEP(escadas[i].x, escadas[i].y, escadas[i].z, escadas[i].altura, escadas[i].largura, escadas[i].profundidade, personX, personY, personZ, raioPerson)) {
+					personZ -= 0.035;
+					cima = true;
+					baixo = false;
+					flag1 = 1;
+					flag2++;
+					break;
 				}
 			}
-			if(flag1 == 0){ //quando n?o colidir mais com a escada
+			if(flag1 == 0) { //quando n?o colidir mais com a escada
 				cima = false;
-				if(flag2>0 && personY<0.0){//transalada o personagem para tras	verifica se ja nao foi transaladado enquanto descia				
+				if(flag2 > 0 && personY < 0.0) { //transalada o personagem para tras	verifica se ja nao foi transaladado enquanto descia
 					personY = 0;
 				}
-				flag2=0;
-				flag4=0;
+				flag2 = 0;
+				flag4 = 0;
 			}
-			if(cima && flag2==1 && personY==0){//transalada o personagem para frente confere se ja nao foi colocado p frente enquando descia
+			if(cima && flag2 == 1 && personY == 0) { //transalada o personagem para frente confere se ja nao foi colocado p frente enquando descia
 				personY = -0.14;
-			}	
+			}
 		}
 		glutPostRedisplay();
 		break;
@@ -455,19 +454,19 @@ void keyboard_special(int key, int x, int y) {
 				flag4++;
 				break;
 			}
-	
+
 		}
-			if(flag3 == 0){ //quando n?o colidir mais
-				baixo = false;
-				if(flag4>0 && personY<0){//transalada o personagem para tras					
-					personY = 0;
-				}
-				flag4=0;
-				flag2=0;
+		if(flag3 == 0) { //quando n?o colidir mais
+			baixo = false;
+			if(flag4 > 0 && personY < 0) { //transalada o personagem para tras
+				personY = 0;
 			}
-			if(baixo && flag4==1 && personY==0){//transalada o personagem para frente
-				personY = -0.14;
-			}
+			flag4 = 0;
+			flag2 = 0;
+		}
+		if(baixo && flag4 == 1 && personY == 0) { //transalada o personagem para frente
+			personY = -0.14;
+		}
 
 		glutPostRedisplay();
 		break;
@@ -604,7 +603,7 @@ void criaCubo(float x) {
 	glVertex3f(x, x, x);
 	glColor3f(1.0f, 1.0f, 1.0f);
 	glVertex3f(x, x, -x);
-	
+
 	glNormal3f(0.0, -1.0, 0.0);
 	glColor3f(0.0f, 0.0f, 1.0f);
 	glVertex3f(-x, -x, -x);
@@ -1155,4 +1154,3 @@ bool colisaoQP(Retangulo figura, float x_clique, float y_clique) { //colisao qua
 	return (abs(figura.x - x_clique) * 2 < (figura.largura )) &&
 		   (abs(figura.y - y_clique) * 2 < (figura.altura));
 }
-
