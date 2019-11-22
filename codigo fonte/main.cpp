@@ -37,6 +37,12 @@ int contPulo = 0; //Variável para controlar a translacao do personagem ao pular
 int contPrincesa = 0, anguloPrincesa = 180; //variáveis para controlar a rotacao da princesa
 //barril vari?veis
 
+int flag1 = 0;//quando sobe a escada
+int flag2 = 0;//auxilia p transaladar p frente da escada enquanto sobe
+
+int flag3 = 0;//quando desce a escada
+int flag4 = 0;//auxilia p transaladar p frente da escada enquanto desce
+
 float raioBarril = 0.05; //coordenadas iniciais do barril
 float velocidadesBarril[3] = {0.015 , 0.020, 0.025}; //Vetor que é usado para definir a velocidade do barril
 typedef struct Retangulo;  //struct para auxiliar na textura das figuras dos menus
@@ -251,20 +257,47 @@ void timer_callback(int value) {
 	glutTimerFunc(value, timer_callback, value);
 	//Verifica se o personagem colidiu com um dos barris
 	for(int i = 0; i < qte_barris; i++) {
-		if(colisao(barris[i].x, barris[i].y, barris[i].z, barris[i].raio, personX, personY, personZ, raioPerson)) {
-			printf("Perdeu dd");
-			personX = 0.85;//restaura todas coordenadas padrões
-			personY = 0.0;
-			personZ = 0.83;
-			contPulo = 0;
-			cima = false;
-			baixo = false;
-			pulo = false;
-			gameover = true;
-			qte_barris = 0;
-			PlaySound(TEXT("../audios/perdeu.wav"), NULL, SND_SYNC);
-			break;
+		if(flag1==0 || flag3==0){//se nao estiver subindo/descendo na escada
+			if(colisao(barris[i].x, barris[i].y, barris[i].z, barris[i].raio, personX, personY, personZ, raioPerson)) {
+				printf("Perdeu dd");
+				personX = 0.85;//restaura todas coordenadas padrões
+				personY = 0.0;
+				personZ = 0.83;
+				flag1=0;
+				flag2=0;
+				flag3=0;
+				flag4=0;
+				contPulo = 0;
+				cima = false;
+				baixo = false;
+				pulo = false;
+				gameover = true;
+				qte_barris = 0;
+				PlaySound(TEXT("../audios/perdeu.wav"), NULL, SND_SYNC);
+				break;
+					}
 		}
+        else{ //se estiver subindo na escada passa como parametro o raio do person um pouco maior p colidir com o barril
+			if(colisao(barris[i].x, barris[i].y, barris[i].z, barris[i].raio, personX, personY, personZ, raioPerson+0.05)){
+				printf("Perdeu dd");
+				personX = 0.85;//restaura todas coordenadas padrões
+				personY = 0.0;
+				personZ = 0.83;
+				flag1=0;
+				flag2=0;
+				flag3=0;
+				flag4=0;
+				contPulo = 0;
+				cima = false;
+				baixo = false;
+				pulo = false;
+				gameover = true;
+				qte_barris = 0;
+				PlaySound(TEXT("../audios/perdeu.wav"), NULL, SND_SYNC);
+				break;
+			}	
+		}
+
 		if(barris[i].x <= -1) {
 			barris[i].esquerda = false;
 			barris[i].direita = true;
@@ -305,7 +338,7 @@ void timer_callback(int value) {
 		}
 	if(colisao(0.23, 0.02, -1.21, 0.07, personX, personY, personZ, raioPerson)) { //verifica se colidiu com a princesa
 		printf("Ganhou dd");
-		PlaySound(TEXT("../audios/ganhou.wav"), NULL, SND_SYNC);
+		PlaySound(TEXT("../audios/ganhou.wav"), NULL, SND_ASYNC);
 		personX = 0.85;//restaura todas coordenadas padrões
 		personY = 0.0;
 		personZ = 0.83;
@@ -322,11 +355,9 @@ void timer_callback(int value) {
 }
 
 
-
+bool origem=true;
 //Funcao para controlar as teclas especiais (2 Byte) do teclado
-int flag1 = 0;
 void keyboard_special(int key, int x, int y) {
-
 	switch(key) {
 		//  Rotacao 5 graus esquerda
 	case GLUT_KEY_F1:
@@ -367,22 +398,33 @@ void keyboard_special(int key, int x, int y) {
 		flag1 = 0;
 		if(!pulo) {  // se subiu e nao pulou, verifica se colidiu com a escada
 			for(int i = 0; i < quantEscadas; i++) { //verifica se h? colis?o com a escada e personagem
-				if (colisaoEP(escadas[i].x, escadas[i].y, escadas[i].z, escadas[i].altura, escadas[i].largura, escadas[i].profundidade, personX, personY, personZ, raioPerson)) {
-					personZ -= 0.035;
-					cima = true;
-					baixo = false;
-					flag1 = 1;
-					break;
+					if (colisaoEP(escadas[i].x, escadas[i].y, escadas[i].z, escadas[i].altura, escadas[i].largura, escadas[i].profundidade, personX, personY, personZ, raioPerson)) {
+						personZ -= 0.035;
+						cima = true;
+						baixo = false;
+						flag1 = 1;
+						flag2++;
+						break;
 				}
 			}
-			if(flag1 == 0) //quando n?o colidir mais com a escada
+			if(flag1 == 0){ //quando n?o colidir mais com a escada
 				cima = false;
+				if(flag2>0 && personY<0.0){//transalada o personagem para tras	verifica se ja nao foi transaladado enquanto descia				
+					personY = 0;
+				}
+				flag2=0;
+				flag4=0;
+			}
+			if(cima && flag2==1 && personY==0){//transalada o personagem para frente confere se ja nao foi colocado p frente enquando descia
+				personY = -0.14;
+			}	
 		}
 		glutPostRedisplay();
 		break;
 
 
 	case GLUT_KEY_DOWN://seta baixo
+		flag3 = 0;
 		for(int i = 1; i < 45; i++) {
 			if(blocks[i].colide && colisao(blocks[i].x, blocks[i].y, blocks[i].z, blocks[i].raio, personX, personY, personZ, raioPerson)) {
 				cima = false;
@@ -393,21 +435,39 @@ void keyboard_special(int key, int x, int y) {
 				personZ += 0.035;
 				baixo = true;
 				cima = false;
+				flag3 = 1;
+				flag4++;
 				break;
 			} else if(!blocks[i].colide && (i == 24) && colisaoEP(blocks[i].x, blocks[i].y, blocks[i].z, 0.18 * 2 + 0.12, 0.05, 0.18, personX, personY, personZ, raioPerson)) {
 
 				personZ += 0.035;
 				baixo = true;
 				cima = false;
+				flag3 = 1;
+				flag4++;
 				break;
 			} else if(!blocks[i].colide && (i == 43) && colisaoEP(blocks[i].x, blocks[i].y, blocks[i].z, 0.18 * 2 + 0.13, 0.05, 0.18, personX, personY, personZ, raioPerson)) {
 
 				personZ += 0.035;
 				baixo = true;
 				cima = false;
+				flag3 = 1;
+				flag4++;
 				break;
 			}
+	
 		}
+			if(flag3 == 0){ //quando n?o colidir mais
+				baixo = false;
+				if(flag4>0 && personY<0){//transalada o personagem para tras					
+					personY = 0;
+				}
+				flag4=0;
+				flag2=0;
+			}
+			if(baixo && flag4==1 && personY==0){//transalada o personagem para frente
+				personY = -0.14;
+			}
 
 		glutPostRedisplay();
 		break;
@@ -455,6 +515,7 @@ void display(void) {
 
 
 void criaCubo(float x) {
+	int contador = 0;
 	// Desenhas as linhas das "bordas" do cubo
 	glColor3f(0.0f, 0.0f, 0.0f);
 	glLineWidth(1.6f);
@@ -566,14 +627,12 @@ void DefineIluminacao (void) {
 	GLfloat luzAmbiente[4] = {1.0, 1.0, 1.0, 1.0};
 	GLfloat luzDifusa[4] = {0.7, 0.7, 0.7, 1.0};
 	GLfloat luzEspecular[4] = {1.0, 1.0, 1.0, 1.0};
-	// GLfloat Ka[4] = {0.0, 1.0, 0.2, 0.01},
-	// 				Kd[4] = {0.0, 1.0, 0.8, 0.01},
-	// 						Ks[4] = {0.0, 1.0, 1.0, 0.01},
-	// 								Ke[4] = {0.0, 1.0, 0.0, 0.01},
-	// 										local_viewer[4] = {1.0, 1.0, 1.0, 1.0},
-	// 												two_side[4] = {0.0, 1.0, 0.0, 1.0};
-	GLfloat two_side[4] = {0.0, 1.0, 0.0, 1.0};
-	
+	GLfloat Ka[4] = {0.0, 1.0, 0.2, 0.01},
+					Kd[4] = {0.0, 1.0, 0.8, 0.01},
+							Ks[4] = {0.0, 1.0, 1.0, 0.01},
+									Ke[4] = {0.0, 1.0, 0.0, 0.01},
+											local_viewer[4] = {1.0, 1.0, 1.0, 1.0},
+													two_side[4] = {0.0, 1.0, 0.0, 1.0};
 	// Capacidade de brilho do material
 	GLfloat especularidade[4] = {1.0, 1.0, 1.0, 1.0};
 	GLint especMaterial = 60;
@@ -628,6 +687,7 @@ void criaCenario() { //quantidade de blocos do cenario
 		int BLOCKS = 12;
 		for(int i = 0; i < BLOCKS; i++) { //numero de blocos em cada andar 'i'
 			float tx, ty, tz;
+			float x = 0, y = 0, z = 0;
 			glPushMatrix();
 			if(k == 0 || (k < 4 && i < 11) || (k == 4 && i > 3 && i < 6)) {
 				if(k % 2 == 0) {
@@ -639,6 +699,8 @@ void criaCenario() { //quantidade de blocos do cenario
 					ty = 0.0;
 					tz = 1 - 0.5 * k;
 				}
+
+				float raio;
 
 				b.x = tx;
 				b.y = ty;
