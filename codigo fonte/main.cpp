@@ -1,9 +1,9 @@
 //*********************************************************************
-//  Computacao Gr?fica usando OpenGL
+//  Computacao Grafica usando OpenGL
 //  Autor: C.DANIEL && J.LUCAS
 //*********************************************************************
 
-// Bibliotecas utilizadas pelo OpenGL
+/* Inclui os headers do OpenGL, GLU, e GLUT */
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glut.h>
@@ -11,10 +11,9 @@
 #include <time.h>         //usada para gerar índices aleatórios para a velocidade do barril
 #include <windows.h>      //usada para reproduzir sons de fundo
 #include <mmsystem.h>    //usada para reproduzir sons de fundo
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-#include "glm.h"
-#define QUANT_TEX 1
+#define STB_IMAGE_IMPLEMENTATION//usada para carregar textura das imagens
+#include "stb_image.h" //usada para carregar textura das imagens
+#include "glm.h"//usada para carregar os objetos(obj) do jogo
 #define quantEscadas 4 //indica a quantidade de escadas do cenário
 #define BLOCOS 45 //quantidade de blocos da fase(por onde o personagem vai andar)
 #include <string>
@@ -129,7 +128,7 @@ GLfloat angulo = 0.0f;
 int main(int argc, char * * argv) {
 
 	glutInit( & argc, argv); // Passagens de parametros C para o glut
-	glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH); // Selecao do Modo do Display e do Sistema de cor utilizado
+	glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH); // double-buffering | sistema de cor utilizado | Associação com profundidade
 	glutInitWindowSize (1000, 700);  // Tamanho da janela do OpenGL
 	glutInitWindowPosition (100, 100); //Posicao inicial da janela do OpenGL
 
@@ -137,7 +136,7 @@ int main(int argc, char * * argv) {
 	glutMouseFunc(GerenciaMouse);
 	init(); // Chama a funcao init();
 	glEnable(GL_DEPTH_TEST);// Habilitando o teste de profundidade do Z-buffer
-	// Registra a fun??o callback que ser? chamada a cada intervalo de tempo
+	// Registra a funcao callback que ser chamada a cada intervalo de tempo
 	glutReshapeFunc(reshape); //funcao callback para redesenhar a tela
 	glutDisplayFunc(display); //funcao callback de desenho
 	glutKeyboardFunc(keyboard); //funcao callback do teclado
@@ -162,31 +161,21 @@ void init(void) {
 	b.raio = 0.05;
 	b.velX = 0.015;
 	b.velZ = 0.015;
-	b.rotacao = velocidadesBarril[rand() % 2];  //seleciona a velocidade entre os valores do vetor após o sorteio
+	b.rotacao = velocidadesBarril[rand() % 3];  //seleciona a velocidade entre os valores do vetor após o sorteio
 	b.esquerda = true;
 	b.direita = false;
 	b.baixo = false;
 	barris[qte_barris++] = b; //coloca o barril no vetor e incrementa a quantiade de barris
-	//
+	//mostra os objetos com um
 	glEnable(GL_FOG);
-	// Habilita a defini??o da cor do material a partir da cor corrente
-	glEnable(GL_COLOR_MATERIAL);
-	//Habilita o uso de ilumina??o
-	glEnable(GL_LIGHTING);
-	// Habilita a luz de n?mero 0
-	glEnable(GL_LIGHT0);
-	// Habilita o depth-buffering
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);
-	glEnable(GL_BLEND);
-
-
+	glEnable(GL_COLOR_MATERIAL);// Habilita a definicao da cor do material(objeto) a partir da cor corrente
+	glEnable(GL_LIGHTING); 	//Habilita o uso de iluminacao
+	glEnable(GL_LIGHT0);	// Habilita a luz de numero 0
+	glEnable(GL_DEPTH_TEST);  // Habilita o depth-buffering
+	glEnable(GL_BLEND); //Exibe os valores de cores do fragmento computado com os valores nos buffers de cores.
 	/* Activa o modelo de sombreagem de "Gouraud". */
 	glShadeModel( GL_SMOOTH );
-
-	/* Activa o z-buffering, de modo a remover as superf?cies escondidas */
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_TEXTURE_2D);//ativa o modo textura 2D
 
 	glutTimerFunc(30, timer_callback, 30); //define a funcao a ser chamada a cada 30 milisegundos
 }
@@ -228,17 +217,21 @@ void GerenciaMouse(int button, int state, int x, int y) {
 }
 
 void reshape(int w, int h) {
-
-	// Reinicializa o sistema de coordenadas
+	 
+	/* define a zona da janela onde se vai desenhar */
+	glViewport(0, 0, (GLsizei) w, (GLsizei) h);
+	/* muda para o modo GL_PROJECTION e reinicia a projecção */
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
+	
+    /* Define a forma do "viewing volume" para termos *
+     * uma projecção de perspectiva (3D).             */
+    gluPerspective(30, (float)w/(float)h, 1.0, 100.0);
 
-	// Definindo o Viewport para o tamanho da janela
-	glViewport(0, 0, w, h);
-
-	glOrtho (0, 512, 0, 512, -1 , 1); // Define o volume de projecao ortografica;
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
+    /* muda para o modo GL_MODELVIEW (não pretendemos alterar a projecção
+     * quando estivermos a desenhar no display) */
+    glMatrixMode (GL_MODELVIEW);
+	
 }
 
 
@@ -248,7 +241,7 @@ void keyboard(unsigned char key, int x, int y) {
 	case 27: // codigo ASCII da tecla ESC
 		exit(0); // comando pra finalizacao do programa
 		break;
-	case ' '://tecla espa?o do teclado
+	case ' '://tecla espaco do teclado
 		pulo = true;
 		break;
 	}
@@ -490,7 +483,7 @@ void display(void) {
 	/* Apaga o video e o depth buffer, e reinicia a matriz */
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
-	// Especifica sistema de coordenadas de proje??o
+	// Especifica sistema de coordenadas de projecao
 	glMatrixMode(GL_PROJECTION);
 	glRotatef( rotate_x, 1.0, 0.0, 0.0 );
 	glRotatef( rotate_y, 0.0, 1.0, 0.0 );
@@ -620,7 +613,7 @@ void criaCubo(float x) {
 
 void DefineIluminacao (void) {
 
-	GLfloat posLuz[4] = { -0.2, -0.2, -1.0, 1.0 };// Posi??o da fonte de luz
+	GLfloat posLuz[4] = { -0.2, -0.2, -1.0, 1.0 };// Posicao da fonte de luz
 	GLfloat luzAmbiente[4] = {1.0, 1.0, 1.0, 1.0};
 	GLfloat luzDifusa[4] = {0.7, 0.7, 0.7, 1.0};
 	GLfloat luzEspecular[4] = {1.0, 1.0, 1.0, 1.0};
@@ -655,7 +648,7 @@ void DefineIluminacao (void) {
 
 
 
-void criaCenario() { //quantidade de blocos do cenario
+void criaCenario() {
 	float c = 1;
 	GLuint texture1, texture2;
 
@@ -797,7 +790,7 @@ void criaCenario() { //quantidade de blocos do cenario
 		b.y = 0.0;
 		b.z = -0.65;
 		b.raio = 0.05;
-		b.velX = velocidadesBarril[rand() % 2];
+		b.velX = velocidadesBarril[rand() % 3];
 		b.velZ = 0.015;
 		b.rotacao = -0.02;
 		b.esquerda = true;
@@ -829,7 +822,6 @@ void criaCenario() { //quantidade de blocos do cenario
 	}
 	glDeleteTextures(1, & texture2);
 	stbi_image_free(uc3);
-	//glDisable(GL_TEXTURE_2D);//desativa a textura do barril
 
 	//personagem
 	glPushMatrix();
@@ -888,6 +880,7 @@ void menuPrincipal() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+	
 	glPushMatrix();
 	glTranslatef(0, 0, -0.9);
 	glRotatef(180, 0, 0, 0); //rotacao de 180 graus
@@ -1021,7 +1014,7 @@ void drawModel(char * fname) {
 		if (!pmodel)
 			exit(0);
 		glmUnitize(pmodel);
-		glmFacetNormals(pmodel);
+		glmFacetNormals(pmodel);//normal do obejeto
 		glmVertexNormals(pmodel, 90.0);
 		glmDraw(pmodel, GLM_SMOOTH);
 	}
@@ -1074,7 +1067,7 @@ void criaPersonagens() { //personagens(macaco e princesa) e as escadas!
 	glTranslatef( 0.23, 0.02, -1.21);
 	glScalef(0.1, 0.1, 0.1);
 	glRotatef(180, 0.0f, 1.0f, -0.5f);//rotacao
-	if(contPrincesa <= 27) {
+	if(contPrincesa <= 27) {//movimentação da princesa a cada quant de frames
 		glRotatef(anguloPrincesa - 5, 0.0f, 1.0f, 0.0f); //rotacao
 	} else if (contPrincesa > 27 && contPrincesa <= 56) {
 		glRotatef(anguloPrincesa + 5, 0.0f, 1.0f, 0.0f); //rotacao
@@ -1102,6 +1095,7 @@ void criaQuadrado(float x) {
 	glEnd();
 }
 //x1,y1,z1,raio 1 coordenadas do 1 elemento e x2,y2,z2,raio 2 coordenadas do 2 elemento
+//colisao Esfera-Esfera
 bool colisao(float x1, float y1, float z1, float raio1, float x2, float y2, float z2, float raio2) {
 	float d = sqrt((- x1 + x2)  * (- x1 +  x2) + (-y1 + y2) * (-y1 + y2) +  ( -z1 + z2) * (-z1 + z2));
 	if(d <= (raio1 + raio2))
@@ -1109,7 +1103,7 @@ bool colisao(float x1, float y1, float z1, float raio1, float x2, float y2, floa
 	else
 		return false;
 }
-
+//Colisao paralelepípedo-Esfera
 bool colisaoEP(float x1, float y1 , float z1, float altura, float largura, float profundidade, float x2, float y2, float z2, float raio2) {
 	double sphereXDistance = fabs(x2 - x1);
 	double sphereYDistance = fabs(y2 - y1);//profundidade no caso do jogo
@@ -1141,6 +1135,7 @@ bool colisaoEP(float x1, float y1 , float z1, float altura, float largura, float
 
 	return (cornerDistance_sq <= (raio2 * raio2));
 }
+//Colisao Quadrado-Ponto(clique)
 bool colisaoQP(Retangulo figura, float x_clique, float y_clique) { //colisao quadrado e um ponto qualquer(clique)
 	return (abs(figura.x - x_clique) * 2 < (figura.largura )) &&
 		   (abs(figura.y - y_clique) * 2 < (figura.altura));
