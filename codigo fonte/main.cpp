@@ -1032,9 +1032,9 @@ void drawModel(char * fname) {
 		glmUnitize(pmodel);
 		glmFacetNormals(pmodel);
 		glmVertexNormals(pmodel, 90.0);
-		glmDraw(pmodel, GLM_SMOOTH | GLM_FLAT);
+		glmDraw(pmodel, GLM_SMOOTH);
 	}
-	glmDraw(pmodel, GLM_SMOOTH | GLM_FLAT);
+	glmDraw(pmodel, GLM_SMOOTH);
 
 
 }
@@ -1047,9 +1047,9 @@ void drawMode2(char * fname) {
 		glmUnitize(pmode2);
 		glmFacetNormals(pmode2);
 		glmVertexNormals(pmode2, 90.0);
-		glmDraw(pmode2, GLM_SMOOTH | GLM_FLAT);
+		glmDraw(pmode2, GLM_SMOOTH);
 	}
-	glmDraw(pmode2, GLM_SMOOTH | GLM_FLAT);
+	glmDraw(pmode2, GLM_SMOOTH);
 }
 
 void drawMode3(char * fname) {
@@ -1060,9 +1060,9 @@ void drawMode3(char * fname) {
 		glmUnitize(pmode3);
 		glmFacetNormals(pmode3);
 		glmVertexNormals(pmode3, 90.0);
-		glmDraw(pmode3, GLM_SMOOTH | GLM_FLAT);
+		glmDraw(pmode3, GLM_SMOOTH);
 	}
-	glmDraw(pmode3, GLM_SMOOTH | GLM_FLAT);
+	glmDraw(pmode3, GLM_SMOOTH);
 }
 
 void criaPersonagens() { //personagens(macaco e princesa) e as escadas!
