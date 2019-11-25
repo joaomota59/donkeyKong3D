@@ -15,7 +15,7 @@
 #include "stb_image.h" //usada para carregar textura das imagens
 #include "glm.h"//usada para carregar os objetos(obj) do jogo
 #define quantEscadas 4 //indica a quantidade de escadas do cenário
-#define BLOCOS 45 //quantidade de blocos da fase(por onde o personagem vai andar)
+#define BLOCOS 47 //quantidade de blocos da fase(por onde o personagem vai andar)
 #include <string>
 
 //Variaveis Globais usadas para definicao de cores
@@ -302,7 +302,7 @@ void timer_callback(int value) {
 			barris[i].baixo = false;
 		}
 		int barril_colidiu = 0, barril_colidiu_primeiro_bloco = -1;
-		for(int j = 0; j < 45; j ++) { //verifica quando o barril vai descendo
+		for(int j = 0; j < BLOCOS; j ++) { //verifica quando o barril vai descendo
 			if(blocks[j].colide && colisao(blocks[j].x, blocks[j].y, blocks[j].z, blocks[j].raio, barris[i].x, barris[i].y, barris[i].z, barris[i].raio) ) {
 				barril_colidiu = 1;
 				break;
@@ -418,7 +418,7 @@ void keyboard_special(int key, int x, int y) {
 
 	case GLUT_KEY_DOWN://seta baixo
 		personagem_colidiu_escada_descida = 0;
-		for(int i = 1; i < 45; i++) {
+		for(int i = 1; i < BLOCOS; i++) {
 			if(blocks[i].colide && colisao(blocks[i].x, blocks[i].y, blocks[i].z, blocks[i].raio, personX, personY, personZ, raioPerson)) {
 				cima = false;
 				baixo = false;
